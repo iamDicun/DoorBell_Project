@@ -1,0 +1,18 @@
+# PlatformIO
+/.pio
+.pioenvs
+.piolibdeps
+.pio/build
+.pio/libdeps
+
+# VSCode
+.vscode/.browse.*
+.vscode/c_cpp_properties.json
+.vscode/launch.json
+.vscode/ipch
+
+# OS
+.DS_Store
+Thumbs.db
+
+/Dooring-HCMUS
