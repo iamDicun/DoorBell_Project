@@ -31,10 +31,18 @@ This document describes all MQTT topics, JSON payloads, and HTTP endpoints used 
 ```json
 {
   "event": "press",
+  "chime": "style1",
   "device_id": "ESP32_A1B2C3D4",
   "timestamp": 123456
 }
 ```
+
+**Chime Styles Available:**
+
+- `style1` - Default doorbell chime
+- `style2` - Alternative chime sound 2
+- `style3` - Alternative chime sound 3
+- `style4` - Alternative chime sound 4
 
 ### Photo Upload Success (doorbell/status)
 
@@ -73,6 +81,13 @@ X-Timestamp: 123460
 - **NORMAL:** 1-2 detections in 20 seconds (motion cleared)
 - **MEDIUM:** 3 detections in 20 seconds (person lingering)
 - **HIGH:** 4+ detections in 20 seconds (suspicious loitering)
+
+**Detection Rules:**
+
+- Each detection must be at least **3 seconds apart** (debounce)
+- Detections are counted within a **20-second sliding window**
+- Rising edge (LOW→HIGH) triggers immediate detection registration
+- Alert level evaluated every 5 seconds
 
 ### ALERT_HIGH - Suspicious Activity (doorbell/security)
 
@@ -287,21 +302,96 @@ X-Timestamp: 128456
 
 ---
 
-#### Play Audio Message
+#### Play Doorbell Chimes
+
+**Play Default Chime (Style 1):**
+
+```json
+{ "action": "play_chime_1" }
+```
+
+**Play Chime Style 2:**
+
+```json
+{ "action": "play_chime_2" }
+```
+
+**Play Chime Style 3:**
+
+```json
+{ "action": "play_chime_3" }
+```
+
+**Play Chime Style 4:**
+
+```json
+{ "action": "play_chime_4" }
+```
+
+**Device Response:** Plays corresponding MP3 file from SPIFFS and publishes event to `doorbell/status`:
 
 ```json
 {
-  "file": "wait.wav"
+  "event": "press",
+  "chime": "style2",
+  "device_id": "ESP32_A1B2C3D4",
+  "timestamp": 135000
 }
 ```
 
-**Device Response:** Plays specified WAV file from SPIFFS storage
+**Implementation Details:**
 
-**Available Files:**
+- Device loads MP3 file from SPIFFS into memory buffer
+- Uses ESP8266Audio library with MP3 decoder
+- If file not found on SPIFFS, falls back to test tone (Mario melody)
+- Maximum file size: 2MB (limited by available RAM)
 
-- `ding-dong.wav` - Doorbell chime
-- `alert.wav` - Security alarm
-- `wait.wav` - Custom message
+**SPIFFS File Upload Required:**
+
+Before chime sounds work, MP3 files must be uploaded to device SPIFFS:
+
+1. Place MP3 files in project `data/` folder:
+
+   ```
+   data/ding_dong.mp3
+   data/ding_dong_2.mp3
+   data/ding_dong_3.mp3
+   data/ding_dong_4.mp3
+   ```
+
+2. Upload to device using PlatformIO:
+
+   ```bash
+   platformio run --target uploadfs
+   ```
+
+3. Verify files in Serial Monitor during boot:
+   ```
+   [SPIFFS] Checking audio files:
+     ✓ /ding_dong.mp3 (15234 bytes)
+     ✓ /ding_dong_2.mp3 (18456 bytes)
+   ```
+
+---
+
+#### Play Audio Message (Generic)
+
+```json
+{
+  "file": "wait"
+}
+```
+
+**Device Response:** Plays specified file from SPIFFS storage (playSampleMessage function)
+
+**Available Audio Files:**
+
+- `ding_dong.mp3` - Default doorbell chime (Style 1)
+- `ding_dong_2.mp3` - Doorbell chime Style 2
+- `ding_dong_3.mp3` - Doorbell chime Style 3
+- `ding_dong_4.mp3` - Doorbell chime Style 4
+- `alarm.mp3` - Security alarm tone
+- `please_wait.mp3` - Custom waiting message
 
 ---
 
@@ -418,20 +508,42 @@ Device automatically attempts reconnection:
 ## Testing Checklist
 
 - [ ] Doorbell press triggers MQTT event + photo upload within 2 seconds
-- [ ] PIR HIGH alert triggers 3 photo uploads + alarm
+- [ ] All 4 chime styles (play_chime_1/2/3/4) work via MQTT command
+- [ ] PIR HIGH alert triggers 3 photo uploads + alarm (4+ detections in 20s)
+- [ ] PIR MEDIUM alert triggers 1 photo (3 detections in 20s)
+- [ ] PIR detections debounced (minimum 3s between each)
 - [ ] Long button press (3+ seconds) records and uploads voice note
 - [ ] Temperature readings appear every 30 seconds
 - [ ] Remote capture command works within 5 seconds
 - [ ] Alarm ON/OFF commands toggle speaker
-- [ ] Heartbeat received every 60 seconds
+- [ ] Heartbeat received every 30 seconds (was 60s, now 30s per code)
 - [ ] X-Event-Type and X-Timestamp headers present on all uploads
 - [ ] MQTT reconnection increments reconnect_count
 - [ ] All payloads include device_id and timestamp
+- [ ] Chime field appears in doorbell/status payloads
+
+---
+
+## Quick Reference: MQTT Commands
+
+### Remote Control Commands (doorbell/command)
+
+| Command       | Payload                               | Description                  |
+| ------------- | ------------------------------------- | ---------------------------- |
+| Alarm ON      | `{"action":"ON"}`                     | Activate security alarm      |
+| Alarm OFF     | `{"action":"OFF"}`                    | Deactivate security alarm    |
+| Capture Photo | `{"action":"capture"}`                | Take single photo remotely   |
+| Chime Style 1 | `{"action":"play_chime_1"}`           | Play default doorbell sound  |
+| Chime Style 2 | `{"action":"play_chime_2"}`           | Play alternative chime 2     |
+| Chime Style 3 | `{"action":"play_chime_3"}`           | Play alternative chime 3     |
+| Chime Style 4 | `{"action":"play_chime_4"}`           | Play alternative chime 4     |
+| Play File     | `{"file":"wait"}`                     | Play custom audio message    |
+| Set Volume    | `{"action":"set_volume","value":0.7}` | Set speaker volume (0.0-1.0) |
 
 ---
 
 ## Contact & Support
 
 **Firmware Version:** 1.0.0  
-**Last Updated:** 2024  
+**Last Updated:** December 2025  
 **Platform:** ESP32-S3 with OV2640 Camera, INMP441 Mic, MAX98357 Speaker

@@ -23,21 +23,173 @@ static unsigned long lastPIRDetection = 0;  // For debouncing
 // --- Button & Door Features ---
 
 void playDingDong() {
-    Serial.println("[FEATURE] Playing Ding-Dong");
+    Serial.println("[FEATURE] Playing Ding-Dong (Style 1)");
     
-    // Check if audio file exists in SPIFFS
     if (SPIFFS.exists(AUDIO_DING_DONG)) {
-        // Play from SPIFFS (you'll need to implement this)
-        Serial.println("[FEATURE] Playing from SPIFFS");
+        File audioFile = SPIFFS.open(AUDIO_DING_DONG, "r");
+        if (audioFile) {
+            size_t fileSize = audioFile.size();
+            Serial.printf("[FEATURE] Loading %s (%u bytes)\n", AUDIO_DING_DONG, fileSize);
+            
+            uint8_t* buffer = getUploadBuffer();
+            if (buffer && fileSize <= 2 * 1024 * 1024) {
+                size_t bytesRead = audioFile.read(buffer, fileSize);
+                audioFile.close();
+                
+                if (bytesRead == fileSize) {
+                    setUploadedBytes(bytesRead);
+                    setUploadReady(true);
+                    playUploadedAudio();
+                } else {
+                    Serial.printf("[FEATURE] Read error: %u/%u bytes\n", bytesRead, fileSize);
+                    playTestTone();
+                }
+            } else {
+                Serial.println("[FEATURE] Buffer allocation failed or file too large");
+                audioFile.close();
+                playTestTone();
+            }
+        } else {
+            Serial.println("[FEATURE] Failed to open file");
+            playTestTone();
+        }
     } else {
-        // Fallback to test tone
+        Serial.println("[FEATURE] File not found, using fallback tone");
         playTestTone();
     }
     
-    // Publish to MQTT with metadata
     char msg[192];
     snprintf(msg, sizeof(msg), 
-             "{\"event\":\"press\",\"device_id\":\"%s\",\"timestamp\":%lu}",
+             "{\"event\":\"press\",\"chime\":\"style1\",\"device_id\":\"%s\",\"timestamp\":%lu}",
+             getDeviceId(), getTimestamp());
+    mqttPublishJson(MQTT_TOPIC_STATUS, msg);
+}
+
+void playDingDong2() {
+    Serial.println("[FEATURE] Playing Ding-Dong (Style 2)");
+    
+    if (SPIFFS.exists(AUDIO_DING_DONG_2)) {
+        File audioFile = SPIFFS.open(AUDIO_DING_DONG_2, "r");
+        if (audioFile) {
+            size_t fileSize = audioFile.size();
+            Serial.printf("[FEATURE] Loading %s (%u bytes)\n", AUDIO_DING_DONG_2, fileSize);
+            
+            uint8_t* buffer = getUploadBuffer();
+            if (buffer && fileSize <= 2 * 1024 * 1024) {
+                size_t bytesRead = audioFile.read(buffer, fileSize);
+                audioFile.close();
+                
+                if (bytesRead == fileSize) {
+                    setUploadedBytes(bytesRead);
+                    setUploadReady(true);
+                    playUploadedAudio();
+                } else {
+                    Serial.printf("[FEATURE] Read error: %u/%u bytes\n", bytesRead, fileSize);
+                    playTestTone();
+                }
+            } else {
+                Serial.println("[FEATURE] Buffer allocation failed or file too large");
+                audioFile.close();
+                playTestTone();
+            }
+        } else {
+            Serial.println("[FEATURE] Failed to open file");
+            playTestTone();
+        }
+    } else {
+        Serial.println("[FEATURE] File not found, using fallback tone");
+        playTestTone();
+    }
+    
+    char msg[192];
+    snprintf(msg, sizeof(msg), 
+             "{\"event\":\"press\",\"chime\":\"style2\",\"device_id\":\"%s\",\"timestamp\":%lu}",
+             getDeviceId(), getTimestamp());
+    mqttPublishJson(MQTT_TOPIC_STATUS, msg);
+}
+
+void playDingDong3() {
+    Serial.println("[FEATURE] Playing Ding-Dong (Style 3)");
+    
+    if (SPIFFS.exists(AUDIO_DING_DONG_3)) {
+        File audioFile = SPIFFS.open(AUDIO_DING_DONG_3, "r");
+        if (audioFile) {
+            size_t fileSize = audioFile.size();
+            Serial.printf("[FEATURE] Loading %s (%u bytes)\n", AUDIO_DING_DONG_3, fileSize);
+            
+            uint8_t* buffer = getUploadBuffer();
+            if (buffer && fileSize <= 2 * 1024 * 1024) {
+                size_t bytesRead = audioFile.read(buffer, fileSize);
+                audioFile.close();
+                
+                if (bytesRead == fileSize) {
+                    setUploadedBytes(bytesRead);
+                    setUploadReady(true);
+                    playUploadedAudio();
+                } else {
+                    Serial.printf("[FEATURE] Read error: %u/%u bytes\n", bytesRead, fileSize);
+                    playTestTone();
+                }
+            } else {
+                Serial.println("[FEATURE] Buffer allocation failed or file too large");
+                audioFile.close();
+                playTestTone();
+            }
+        } else {
+            Serial.println("[FEATURE] Failed to open file");
+            playTestTone();
+        }
+    } else {
+        Serial.println("[FEATURE] File not found, using fallback tone");
+        playTestTone();
+    }
+    
+    char msg[192];
+    snprintf(msg, sizeof(msg), 
+             "{\"event\":\"press\",\"chime\":\"style3\",\"device_id\":\"%s\",\"timestamp\":%lu}",
+             getDeviceId(), getTimestamp());
+    mqttPublishJson(MQTT_TOPIC_STATUS, msg);
+}
+
+void playDingDong4() {
+    Serial.println("[FEATURE] Playing Ding-Dong (Style 4)");
+    
+    if (SPIFFS.exists(AUDIO_DING_DONG_4)) {
+        File audioFile = SPIFFS.open(AUDIO_DING_DONG_4, "r");
+        if (audioFile) {
+            size_t fileSize = audioFile.size();
+            Serial.printf("[FEATURE] Loading %s (%u bytes)\n", AUDIO_DING_DONG_4, fileSize);
+            
+            uint8_t* buffer = getUploadBuffer();
+            if (buffer && fileSize <= 2 * 1024 * 1024) {
+                size_t bytesRead = audioFile.read(buffer, fileSize);
+                audioFile.close();
+                
+                if (bytesRead == fileSize) {
+                    setUploadedBytes(bytesRead);
+                    setUploadReady(true);
+                    playUploadedAudio();
+                } else {
+                    Serial.printf("[FEATURE] Read error: %u/%u bytes\n", bytesRead, fileSize);
+                    playTestTone();
+                }
+            } else {
+                Serial.println("[FEATURE] Buffer allocation failed or file too large");
+                audioFile.close();
+                playTestTone();
+            }
+        } else {
+            Serial.println("[FEATURE] Failed to open file");
+            playTestTone();
+        }
+    } else {
+        Serial.println("[FEATURE] File not found, using fallback tone");
+        playTestTone();
+    }
+    
+    char msg[192];
+    snprintf(msg, sizeof(msg), 
+             "{\"event\":\"press\",\"chime\":\"style4\",\"device_id\":\"%s\",\"timestamp\":%lu}",
              getDeviceId(), getTimestamp());
     mqttPublishJson(MQTT_TOPIC_STATUS, msg);
 }
