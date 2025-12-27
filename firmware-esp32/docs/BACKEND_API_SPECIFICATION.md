@@ -339,6 +339,39 @@ X-Timestamp: 128456
 }
 ```
 
+**Implementation Details:**
+
+- Device loads MP3 file from SPIFFS into memory buffer
+- Uses ESP8266Audio library with MP3 decoder
+- If file not found on SPIFFS, falls back to test tone (Mario melody)
+- Maximum file size: 2MB (limited by available RAM)
+
+**SPIFFS File Upload Required:**
+
+Before chime sounds work, MP3 files must be uploaded to device SPIFFS:
+
+1. Place MP3 files in project `data/` folder:
+
+   ```
+   data/ding_dong.mp3
+   data/ding_dong_2.mp3
+   data/ding_dong_3.mp3
+   data/ding_dong_4.mp3
+   ```
+
+2. Upload to device using PlatformIO:
+
+   ```bash
+   platformio run --target uploadfs
+   ```
+
+3. Verify files in Serial Monitor during boot:
+   ```
+   [SPIFFS] Checking audio files:
+     ✓ /ding_dong.mp3 (15234 bytes)
+     ✓ /ding_dong_2.mp3 (18456 bytes)
+   ```
+
 ---
 
 #### Play Audio Message (Generic)

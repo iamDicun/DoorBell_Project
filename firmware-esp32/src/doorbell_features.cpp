@@ -26,8 +26,35 @@ void playDingDong() {
     Serial.println("[FEATURE] Playing Ding-Dong (Style 1)");
     
     if (SPIFFS.exists(AUDIO_DING_DONG)) {
-        Serial.println("[FEATURE] Playing from SPIFFS");
+        File audioFile = SPIFFS.open(AUDIO_DING_DONG, "r");
+        if (audioFile) {
+            size_t fileSize = audioFile.size();
+            Serial.printf("[FEATURE] Loading %s (%u bytes)\n", AUDIO_DING_DONG, fileSize);
+            
+            uint8_t* buffer = getUploadBuffer();
+            if (buffer && fileSize <= 2 * 1024 * 1024) {
+                size_t bytesRead = audioFile.read(buffer, fileSize);
+                audioFile.close();
+                
+                if (bytesRead == fileSize) {
+                    setUploadedBytes(bytesRead);
+                    setUploadReady(true);
+                    playUploadedAudio();
+                } else {
+                    Serial.printf("[FEATURE] Read error: %u/%u bytes\n", bytesRead, fileSize);
+                    playTestTone();
+                }
+            } else {
+                Serial.println("[FEATURE] Buffer allocation failed or file too large");
+                audioFile.close();
+                playTestTone();
+            }
+        } else {
+            Serial.println("[FEATURE] Failed to open file");
+            playTestTone();
+        }
     } else {
+        Serial.println("[FEATURE] File not found, using fallback tone");
         playTestTone();
     }
     
@@ -42,8 +69,35 @@ void playDingDong2() {
     Serial.println("[FEATURE] Playing Ding-Dong (Style 2)");
     
     if (SPIFFS.exists(AUDIO_DING_DONG_2)) {
-        Serial.println("[FEATURE] Playing Style 2 from SPIFFS");
+        File audioFile = SPIFFS.open(AUDIO_DING_DONG_2, "r");
+        if (audioFile) {
+            size_t fileSize = audioFile.size();
+            Serial.printf("[FEATURE] Loading %s (%u bytes)\n", AUDIO_DING_DONG_2, fileSize);
+            
+            uint8_t* buffer = getUploadBuffer();
+            if (buffer && fileSize <= 2 * 1024 * 1024) {
+                size_t bytesRead = audioFile.read(buffer, fileSize);
+                audioFile.close();
+                
+                if (bytesRead == fileSize) {
+                    setUploadedBytes(bytesRead);
+                    setUploadReady(true);
+                    playUploadedAudio();
+                } else {
+                    Serial.printf("[FEATURE] Read error: %u/%u bytes\n", bytesRead, fileSize);
+                    playTestTone();
+                }
+            } else {
+                Serial.println("[FEATURE] Buffer allocation failed or file too large");
+                audioFile.close();
+                playTestTone();
+            }
+        } else {
+            Serial.println("[FEATURE] Failed to open file");
+            playTestTone();
+        }
     } else {
+        Serial.println("[FEATURE] File not found, using fallback tone");
         playTestTone();
     }
     
@@ -58,8 +112,35 @@ void playDingDong3() {
     Serial.println("[FEATURE] Playing Ding-Dong (Style 3)");
     
     if (SPIFFS.exists(AUDIO_DING_DONG_3)) {
-        Serial.println("[FEATURE] Playing Style 3 from SPIFFS");
+        File audioFile = SPIFFS.open(AUDIO_DING_DONG_3, "r");
+        if (audioFile) {
+            size_t fileSize = audioFile.size();
+            Serial.printf("[FEATURE] Loading %s (%u bytes)\n", AUDIO_DING_DONG_3, fileSize);
+            
+            uint8_t* buffer = getUploadBuffer();
+            if (buffer && fileSize <= 2 * 1024 * 1024) {
+                size_t bytesRead = audioFile.read(buffer, fileSize);
+                audioFile.close();
+                
+                if (bytesRead == fileSize) {
+                    setUploadedBytes(bytesRead);
+                    setUploadReady(true);
+                    playUploadedAudio();
+                } else {
+                    Serial.printf("[FEATURE] Read error: %u/%u bytes\n", bytesRead, fileSize);
+                    playTestTone();
+                }
+            } else {
+                Serial.println("[FEATURE] Buffer allocation failed or file too large");
+                audioFile.close();
+                playTestTone();
+            }
+        } else {
+            Serial.println("[FEATURE] Failed to open file");
+            playTestTone();
+        }
     } else {
+        Serial.println("[FEATURE] File not found, using fallback tone");
         playTestTone();
     }
     
@@ -74,8 +155,35 @@ void playDingDong4() {
     Serial.println("[FEATURE] Playing Ding-Dong (Style 4)");
     
     if (SPIFFS.exists(AUDIO_DING_DONG_4)) {
-        Serial.println("[FEATURE] Playing Style 4 from SPIFFS");
+        File audioFile = SPIFFS.open(AUDIO_DING_DONG_4, "r");
+        if (audioFile) {
+            size_t fileSize = audioFile.size();
+            Serial.printf("[FEATURE] Loading %s (%u bytes)\n", AUDIO_DING_DONG_4, fileSize);
+            
+            uint8_t* buffer = getUploadBuffer();
+            if (buffer && fileSize <= 2 * 1024 * 1024) {
+                size_t bytesRead = audioFile.read(buffer, fileSize);
+                audioFile.close();
+                
+                if (bytesRead == fileSize) {
+                    setUploadedBytes(bytesRead);
+                    setUploadReady(true);
+                    playUploadedAudio();
+                } else {
+                    Serial.printf("[FEATURE] Read error: %u/%u bytes\n", bytesRead, fileSize);
+                    playTestTone();
+                }
+            } else {
+                Serial.println("[FEATURE] Buffer allocation failed or file too large");
+                audioFile.close();
+                playTestTone();
+            }
+        } else {
+            Serial.println("[FEATURE] Failed to open file");
+            playTestTone();
+        }
     } else {
+        Serial.println("[FEATURE] File not found, using fallback tone");
         playTestTone();
     }
     

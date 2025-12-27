@@ -239,6 +239,39 @@ X-Timestamp: 128456
 }
 ```
 
+**Chi tiết triển khai:**
+
+- Thiết bị load file MP3 từ SPIFFS vào buffer bộ nhớ
+- Sử dụng thư viện ESP8266Audio với MP3 decoder
+- Nếu không tìm thấy file trên SPIFFS, tự động chuyển sang test tone (giai điệu Mario)
+- Kích thước file tối đa: 2MB (giới hạn bởi RAM)
+
+**Yêu cầu upload file lên SPIFFS:**
+
+Trước khi âm thanh chuông hoạt động, cần upload file MP3 lên SPIFFS của thiết bị:
+
+1. Đặt file MP3 vào thư mục `data/` của project:
+
+   ```
+   data/ding_dong.mp3
+   data/ding_dong_2.mp3
+   data/ding_dong_3.mp3
+   data/ding_dong_4.mp3
+   ```
+
+2. Upload lên thiết bị dùng PlatformIO:
+
+   ```bash
+   platformio run --target uploadfs
+   ```
+
+3. Kiểm tra file trong Serial Monitor khi khởi động:
+   ```
+   [SPIFFS] Checking audio files:
+     ✓ /ding_dong.mp3 (15234 bytes)
+     ✓ /ding_dong_2.mp3 (18456 bytes)
+   ```
+
 #### Phát file audio có sẵn
 
 ```json
