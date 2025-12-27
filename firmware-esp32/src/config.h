@@ -2,14 +2,14 @@
 #define CONFIG_H
 
 // --- WIFI CONFIGURATION ---
-#define WIFI_SSID           "Dinh"
-#define WIFI_PASS           "dicuongne"
+#define WIFI_SSID           "nvkhai"
+#define WIFI_PASS           "nvkhai238"
 
 // --- MQTT (HiveMQ Cloud) ---
-#define MQTT_BROKER         "aaf300d67e7447499464e9b37bd11547.s1.eu.hivemq.cloud"
+#define MQTT_BROKER         "1cc4e72660cd4655a75fac2f454c5a76.s1.eu.hivemq.cloud"
 #define MQTT_PORT_TLS       8883
 #define MQTT_PORT_WSS       8884
-#define MQTT_USERNAME       "doorbell"
+#define MQTT_USERNAME       "esp_doorbell"
 #define MQTT_PASSWORD       "Hcmus123"
 #define MQTT_TOPIC_STATUS       "doorbell/status"
 #define MQTT_TOPIC_SECURITY     "doorbell/security"
@@ -21,9 +21,10 @@
 #define MQTT_TOPIC_DISTANCE     "doorbell/sensors/distance" // bỏ
 
 // --- Backend Upload Endpoints (HTTP POST) ---
-#define BACKEND_BASE_URL    "https://backend.example.com"
-#define ENDPOINT_VOICE_NOTE "/api/doorbell/voice"
-#define ENDPOINT_BURST_IMG  "/api/doorbell/motion"
+#define BACKEND_BASE_URL    "http://192.168.137.1:3000"
+#define ENDPOINT_VOICE_NOTE "/upload-audio"
+#define ENDPOINT_GUEST_IMG  "/upload-image"
+#define ENDPOINT_BURST_IMG  "/upload-image"
 
 // --- SENSOR / CONTROL PINS ---
 #define BUTTON_PIN          39  // User button, short/long press actions
@@ -31,13 +32,35 @@
 #define THERMISTOR_PIN      14  // ADC input for NTC
 #define IR_SENSOR_PIN       PIR_PIN  // Analog IR distance sensor (defaults to PIR pin)
 
+// --- BUTTON CONFIGURATION ---
+#define BUTTON_SHORT_PRESS_MS   100   // Minimum time for valid press
+#define BUTTON_LONG_PRESS_MS    3000  // Long press threshold for voice note
+#define DEBOUNCE_MS             100    // Debounce time for button
+
+// --- PIR ALERT LEVELS ---
+#define PIR_SCAN_INTERVAL_MS    5000  // Scan every 5 seconds
+#define PIR_SCAN_WINDOW_MS      20000 // 20 second window
+#define PIR_ALERT_HIGH          4     // 4 detections in 20s = high alert
+#define PIR_ALERT_MEDIUM        3     // 3 detections = medium alert
+#define PIR_ALERT_NORMAL        1     // 1-2 detections = normal
+
+// --- CAMERA BURST CONFIGURATION ---
+#define CAMERA_BURST_COUNT      3     // Number of photos in burst mode
+#define CAMERA_BURST_DELAY_MS   500   // Delay between burst photos
+
+// --- AUDIO FILES ---
+#define AUDIO_DING_DONG         "/ding_dong.mp3"
+#define AUDIO_ALARM             "/alarm.mp3"
+#define AUDIO_PLEASE_WAIT       "/please_wait.mp3"
+
+// --- TEMPERATURE READING INTERVAL ---
+#define TEMP_READ_INTERVAL_MS   300000 // Read every 5 minutes
 
 // --- IR DISTANCE CALIBRATION (tune for your sensor) ---
 #define IR_ADC_RAW_NEAR     3200.0f   // Raw ADC when object is nearest
 #define IR_ADC_RAW_FAR       200.0f   // Raw ADC when object is farthest
 #define IR_DISTANCE_NEAR_CM    8.0f   // Distance in cm matching IR_ADC_RAW_NEAR
 #define IR_DISTANCE_FAR_CM    80.0f   // Distance in cm matching IR_ADC_RAW_FAR
-#define BUTTON_LONG_MS      3000
 
 // --- AUDIO DEFAULTS ---
 #define DEFAULT_SPK_VOLUME  0.5f
