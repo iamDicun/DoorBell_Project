@@ -6,7 +6,8 @@
 
 static WiFiClientSecure uploadSecureClient;
 
-bool uploadClientPost(const char* endpoint, const uint8_t* data, size_t len, const char* contentType) {
+bool uploadClientPost(const char* endpoint, const uint8_t* data, size_t len, const char* contentType, 
+                      const char* eventType, unsigned long timestamp) {
     if (WiFi.status() != WL_CONNECTED) {
         Serial.println("[UPLOAD] WiFi not connected");
         return false;
@@ -25,6 +26,17 @@ bool uploadClientPost(const char* endpoint, const uint8_t* data, size_t len, con
     }
     
     http.addHeader("Content-Type", contentType);
+    
+    // Add custom headers for metadata
+    if (eventType != nullptr) {
+        http.addHeader("X-Event-Type", eventType);
+    }
+    if (timestamp > 0) {
+        char tsStr[32];
+        snprintf(tsStr, sizeof(tsStr), "%lu", timestamp);
+        http.addHeader("X-Timestamp", tsStr);
+    }
+    
     http.setTimeout(30000); // 30 second timeout
     
     int httpCode = http.POST((uint8_t*)data, len);
@@ -48,13 +60,14 @@ bool uploadClientPost(const char* endpoint, const uint8_t* data, size_t len, con
     return success;
 }
 
-bool uploadWithRetry(const char* endpoint, const uint8_t* data, size_t len, const char* contentType, int maxRetries) {
+bool uploadWithRetry(const char* endpoint, const uint8_t* data, size_t len, const char* contentType, 
+                     int maxRetries, const char* eventType, unsigned long timestamp) {
     Serial.printf("[UPLOAD] Retry upload (max %d attempts)\n", maxRetries);
     
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
         Serial.printf("[UPLOAD] Attempt %d/%d\n", attempt, maxRetries);
         
-        if (uploadClientPost(endpoint, data, len, contentType)) {
+        if (uploadClientPost(endpoint, data, len, contentType, eventType, timestamp)) {
             Serial.println("[UPLOAD] Success!");
             return true;
         }
