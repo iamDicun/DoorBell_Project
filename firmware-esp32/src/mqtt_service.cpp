@@ -220,9 +220,6 @@ void mqttHandleCommandPayload(const char* jsonPayload) {
     else if (strcmp(action, "play_chime_3") == 0) {
         playDingDong3();
     }
-    else if (strcmp(action, "play_chime_4") == 0) {
-        playDingDong4();
-    }
     else if (strcmp(action, "set_volume") == 0) {
         float volume = doc["value"] | 0.5f;
         setVolumeLevel(volume);

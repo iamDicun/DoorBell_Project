@@ -20,43 +20,105 @@ static unsigned long lastPIRDetection = 0;  // For debouncing
 
 #define PIR_DETECTION_DEBOUNCE_MS 3000  // Minimum 3s between detections
 
+// Helper: normalize path for SPIFFS (ensure starts with '/' and strip data/ prefix)
+static String normalizeSPIFFSPath(const char* path) {
+    if (!path || strlen(path) == 0) {
+        Serial.println("[AUDIO] ERROR: Null or empty path");
+        return String("/");
+    }
+    
+    String p = String(path);
+    
+    // Remove leading ./data/ or data/
+    if (p.startsWith("./data/")) {
+        p = p.substring(7); // Remove "./data/"
+    } else if (p.startsWith("data/")) {
+        p = p.substring(5); // Remove "data/"
+    } else if (p.startsWith("./")) {
+        p = p.substring(2); // Remove "./"
+    }
+    
+    // Ensure starts with /
+    if (!p.startsWith("/")) {
+        p = String("/") + p;
+    }
+    
+    return p;
+}
+
+// Helper function to play audio from SPIFFS
+static void playAudioFile(const char* filepath) {
+    Serial.println("\n========== AUDIO PLAYBACK ==========");
+    Serial.printf("[AUDIO] Original path: '%s'\n", filepath ? filepath : "(null)");
+    
+    String normalizedPath = normalizeSPIFFSPath(filepath);
+    Serial.printf("[AUDIO] Normalized path: '%s'\n", normalizedPath.c_str());
+    
+    // Check if SPIFFS is mounted
+    if (!SPIFFS.begin(false)) {
+        Serial.println("[AUDIO] ERROR: SPIFFS not mounted!");
+        playTestTone();
+        return;
+    }
+    
+    // Check if file exists
+    if (!SPIFFS.exists(normalizedPath.c_str())) {
+        Serial.printf("[AUDIO] ❌ File not found: %s\n", normalizedPath.c_str());
+        Serial.println("[AUDIO] Using fallback tone");
+        Serial.println("====================================\n");
+        playTestTone();
+        return;
+    }
+    
+    // Try to open file
+    File audioFile = SPIFFS.open(normalizedPath.c_str(), "r");
+    if (!audioFile) {
+        Serial.printf("[AUDIO] ❌ Failed to open: %s\n", normalizedPath.c_str());
+        Serial.println("[AUDIO] Using fallback tone");
+        Serial.println("====================================\n");
+        playTestTone();
+        return;
+    }
+    
+    size_t fileSize = audioFile.size();
+    Serial.printf("[AUDIO] ✓ File opened: %s (%u bytes)\n", normalizedPath.c_str(), fileSize);
+    
+    // Get upload buffer
+    uint8_t* buffer = getUploadBuffer();
+    if (!buffer) {
+        Serial.println("[AUDIO] ❌ Failed to allocate buffer");
+        audioFile.close();
+        playTestTone();
+        return;
+    }
+    
+    // Read file content
+    size_t bytesRead = audioFile.read(buffer, fileSize);
+    audioFile.close();
+    
+    if (bytesRead != fileSize) {
+        Serial.printf("[AUDIO] ❌ Read error: %u/%u bytes\n", bytesRead, fileSize);
+        playTestTone();
+        return;
+    }
+    
+    Serial.printf("[AUDIO] ✓ Read %u bytes successfully\n", bytesRead);
+    
+    // Set buffer and play
+    setUploadedBytes(bytesRead);
+    setUploadReady(true);
+    
+    Serial.println("[AUDIO] ✓ Starting playback...");
+    Serial.println("====================================\n");
+    
+    playUploadedAudio();
+}
+
 // --- Button & Door Features ---
 
 void playDingDong() {
     Serial.println("[FEATURE] Playing Ding-Dong (Style 1)");
-    
-    if (SPIFFS.exists(AUDIO_DING_DONG)) {
-        File audioFile = SPIFFS.open(AUDIO_DING_DONG, "r");
-        if (audioFile) {
-            size_t fileSize = audioFile.size();
-            Serial.printf("[FEATURE] Loading %s (%u bytes)\n", AUDIO_DING_DONG, fileSize);
-            
-            uint8_t* buffer = getUploadBuffer();
-            if (buffer && fileSize <= 2 * 1024 * 1024) {
-                size_t bytesRead = audioFile.read(buffer, fileSize);
-                audioFile.close();
-                
-                if (bytesRead == fileSize) {
-                    setUploadedBytes(bytesRead);
-                    setUploadReady(true);
-                    playUploadedAudio();
-                } else {
-                    Serial.printf("[FEATURE] Read error: %u/%u bytes\n", bytesRead, fileSize);
-                    playTestTone();
-                }
-            } else {
-                Serial.println("[FEATURE] Buffer allocation failed or file too large");
-                audioFile.close();
-                playTestTone();
-            }
-        } else {
-            Serial.println("[FEATURE] Failed to open file");
-            playTestTone();
-        }
-    } else {
-        Serial.println("[FEATURE] File not found, using fallback tone");
-        playTestTone();
-    }
+    playAudioFile(AUDIO_DING_DONG);
     
     char msg[192];
     snprintf(msg, sizeof(msg), 
@@ -67,39 +129,7 @@ void playDingDong() {
 
 void playDingDong2() {
     Serial.println("[FEATURE] Playing Ding-Dong (Style 2)");
-    
-    if (SPIFFS.exists(AUDIO_DING_DONG_2)) {
-        File audioFile = SPIFFS.open(AUDIO_DING_DONG_2, "r");
-        if (audioFile) {
-            size_t fileSize = audioFile.size();
-            Serial.printf("[FEATURE] Loading %s (%u bytes)\n", AUDIO_DING_DONG_2, fileSize);
-            
-            uint8_t* buffer = getUploadBuffer();
-            if (buffer && fileSize <= 2 * 1024 * 1024) {
-                size_t bytesRead = audioFile.read(buffer, fileSize);
-                audioFile.close();
-                
-                if (bytesRead == fileSize) {
-                    setUploadedBytes(bytesRead);
-                    setUploadReady(true);
-                    playUploadedAudio();
-                } else {
-                    Serial.printf("[FEATURE] Read error: %u/%u bytes\n", bytesRead, fileSize);
-                    playTestTone();
-                }
-            } else {
-                Serial.println("[FEATURE] Buffer allocation failed or file too large");
-                audioFile.close();
-                playTestTone();
-            }
-        } else {
-            Serial.println("[FEATURE] Failed to open file");
-            playTestTone();
-        }
-    } else {
-        Serial.println("[FEATURE] File not found, using fallback tone");
-        playTestTone();
-    }
+    playAudioFile(AUDIO_DING_DONG_2);
     
     char msg[192];
     snprintf(msg, sizeof(msg), 
@@ -147,49 +177,6 @@ void playDingDong3() {
     char msg[192];
     snprintf(msg, sizeof(msg), 
              "{\"event\":\"press\",\"chime\":\"style3\",\"device_id\":\"%s\",\"timestamp\":%lu}",
-             getDeviceId(), getTimestamp());
-    mqttPublishJson(MQTT_TOPIC_STATUS, msg);
-}
-
-void playDingDong4() {
-    Serial.println("[FEATURE] Playing Ding-Dong (Style 4)");
-    
-    if (SPIFFS.exists(AUDIO_DING_DONG_4)) {
-        File audioFile = SPIFFS.open(AUDIO_DING_DONG_4, "r");
-        if (audioFile) {
-            size_t fileSize = audioFile.size();
-            Serial.printf("[FEATURE] Loading %s (%u bytes)\n", AUDIO_DING_DONG_4, fileSize);
-            
-            uint8_t* buffer = getUploadBuffer();
-            if (buffer && fileSize <= 2 * 1024 * 1024) {
-                size_t bytesRead = audioFile.read(buffer, fileSize);
-                audioFile.close();
-                
-                if (bytesRead == fileSize) {
-                    setUploadedBytes(bytesRead);
-                    setUploadReady(true);
-                    playUploadedAudio();
-                } else {
-                    Serial.printf("[FEATURE] Read error: %u/%u bytes\n", bytesRead, fileSize);
-                    playTestTone();
-                }
-            } else {
-                Serial.println("[FEATURE] Buffer allocation failed or file too large");
-                audioFile.close();
-                playTestTone();
-            }
-        } else {
-            Serial.println("[FEATURE] Failed to open file");
-            playTestTone();
-        }
-    } else {
-        Serial.println("[FEATURE] File not found, using fallback tone");
-        playTestTone();
-    }
-    
-    char msg[192];
-    snprintf(msg, sizeof(msg), 
-             "{\"event\":\"press\",\"chime\":\"style4\",\"device_id\":\"%s\",\"timestamp\":%lu}",
              getDeviceId(), getTimestamp());
     mqttPublishJson(MQTT_TOPIC_STATUS, msg);
 }
@@ -339,18 +326,8 @@ void activateAlarm() {
     Serial.println("[FEATURE] Activating alarm");
     isAlarmActive = true;
     
-    // Play alarm sound in loop
-    // This is a simplified version - you may want to create a task for this
-    if (SPIFFS.exists(AUDIO_ALARM)) {
-        // Play alarm from SPIFFS
-        Serial.println("[FEATURE] Playing alarm sound");
-    } else {
-        // Fallback - play test tone repeatedly
-        for (int i = 0; i < 5; i++) {
-            playTestTone(); // Play test tone
-            delay(100);
-        }
-    }
+    // Play alarm sound from SPIFFS
+    playAudioFile(AUDIO_ALARM);
     
     mqttPublishJson(MQTT_TOPIC_SECURITY, "{\"event\":\"alarm_activated\"}");
 }

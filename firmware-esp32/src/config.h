@@ -52,7 +52,6 @@
 #define AUDIO_DING_DONG         "/ding_dong.mp3"
 #define AUDIO_DING_DONG_2       "/ding_dong_2.mp3"
 #define AUDIO_DING_DONG_3       "/ding_dong_3.mp3"
-#define AUDIO_DING_DONG_4       "/ding_dong_4.mp3"
 #define AUDIO_ALARM             "/alarm.mp3"
 #define AUDIO_PLEASE_WAIT       "/please_wait.mp3"
 
