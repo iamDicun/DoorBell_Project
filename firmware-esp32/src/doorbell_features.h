@@ -6,7 +6,6 @@
 void playDingDong();
 void playDingDong2();
 void playDingDong3();
-void playDingDong4();
 void startVoiceNoteRecording();
 void stopVoiceNoteRecording();
 

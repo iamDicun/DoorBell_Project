@@ -28,10 +28,63 @@ void doorbellSetup() {
     printBanner();
 
     // Initialize SPIFFS for audio files
+    Serial.println("\n[INIT] Initializing SPIFFS...");
     if (!SPIFFS.begin(true)) {
-        Serial.println("[ERR] SPIFFS init failed");
+        Serial.println("[ERR] ❌ SPIFFS init failed");
     } else {
-        Serial.println("[SPIFFS] Initialized");
+        Serial.println("[SPIFFS] ✓ Initialized");
+        
+        // Get SPIFFS info
+        size_t totalBytes = SPIFFS.totalBytes();
+        size_t usedBytes = SPIFFS.usedBytes();
+        Serial.printf("[SPIFFS] Total: %u bytes | Used: %u bytes | Free: %u bytes\n",
+                     totalBytes, usedBytes, totalBytes - usedBytes);
+        
+        // List all files in SPIFFS
+        Serial.println("\n[SPIFFS] File system contents:");
+        File root = SPIFFS.open("/");
+        if (root && root.isDirectory()) {
+            File file = root.openNextFile();
+            int fileCount = 0;
+            while (file) {
+                Serial.printf("  %d. %-30s %8u bytes\n", 
+                             ++fileCount, file.name(), file.size());
+                file = root.openNextFile();
+            }
+            if (fileCount == 0) {
+                Serial.println("  ⚠ WARNING: No files found!");
+                Serial.println("  You need to upload audio files using:");
+                Serial.println("  'pio run --target uploadfs' or PlatformIO menu");
+            } else {
+                Serial.printf("  Total: %d files\n", fileCount);
+            }
+        } else {
+            Serial.println("  ❌ Cannot read SPIFFS root directory");
+        }
+        
+        // Check expected audio files
+        Serial.println("\n[SPIFFS] Checking expected audio files:");
+        const char* expectedFiles[] = {
+            AUDIO_DING_DONG,
+            AUDIO_DING_DONG_2,
+            AUDIO_DING_DONG_3,
+            AUDIO_ALARM,
+            AUDIO_PLEASE_WAIT
+        };
+        
+        int foundCount = 0;
+        for (int i = 0; i < 5; i++) {
+            if (SPIFFS.exists(expectedFiles[i])) {
+                File f = SPIFFS.open(expectedFiles[i], "r");
+                Serial.printf("  ✓ %-30s %8u bytes\n", expectedFiles[i], f.size());
+                f.close();
+                foundCount++;
+            } else {
+                Serial.printf("  ✗ %-30s MISSING (will use fallback)\n", expectedFiles[i]);
+            }
+        }
+        Serial.printf("  Found %d/%d expected files\n", foundCount, 5);
+        Serial.println();
     }
 
     // Initialize sensor pins
