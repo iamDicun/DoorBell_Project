@@ -1,0 +1,10 @@
+/* Styles are inherited from parent components */
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
