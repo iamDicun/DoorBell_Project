@@ -320,7 +320,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 490,
+        "x": 430,
         "y": 1400,
         "wires": [
             [
@@ -346,8 +346,8 @@
         "correl": "",
         "expiry": "",
         "broker": "0506134bb93b271d",
-        "x": 1070,
-        "y": 1300,
+        "x": 750,
+        "y": 1400,
         "wires": []
     },
     {
@@ -362,11 +362,11 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 960,
+        "x": 760,
         "y": 1480,
         "wires": [
             [
-                "76e9c0bf826a57a2"
+                "ddc987ed11cbdfe1"
             ]
         ]
     },
@@ -377,7 +377,7 @@
         "name": "Return Success",
         "statusCode": "",
         "headers": {},
-        "x": 2000,
+        "x": 1020,
         "y": 1480,
         "wires": []
     },
@@ -388,7 +388,7 @@
         "name": "Return Error",
         "statusCode": "",
         "headers": {},
-        "x": 910,
+        "x": 710,
         "y": 1560,
         "wires": []
     },
@@ -864,70 +864,6 @@
         "x": 1340,
         "y": 1060,
         "wires": []
-    },
-    {
-        "id": "76e9c0bf826a57a2",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Save to Quick Responses ",
-        "func": "// Node: Function - Save to Quick Responses DB\n// Extract filename from URL for title\nconst audioUrl = msg.audioUrl;\nconst fileName = audioUrl.split('/').pop(); // Get \"message_1767040515399.wav\"\nconst title = fileName.replace('.wav', '').replace('message_', 'Tin nhắn #');\n\n// Prepare insert payload\nmsg.payload = JSON.stringify({\n    title: title,\n    audio_url: audioUrl,\n    is_active: true\n});\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1230,
-        "y": 1480,
-        "wires": [
-            [
-                "21cedf4e404fed99"
-            ]
-        ]
-    },
-    {
-        "id": "21cedf4e404fed99",
-        "type": "http request",
-        "z": "bd6bb11c58fb203e",
-        "name": " Insert to Supabase",
-        "method": "POST",
-        "ret": "txt",
-        "paytoqs": "ignore",
-        "url": "https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/quick_responses",
-        "tls": "",
-        "persist": false,
-        "proxy": "",
-        "insecureHTTPParser": false,
-        "authType": "",
-        "senderr": false,
-        "headers": [],
-        "x": 1470,
-        "y": 1480,
-        "wires": [
-            [
-                "d6994a03a3653bad"
-            ]
-        ]
-    },
-    {
-        "id": "d6994a03a3653bad",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": " Format Success Response",
-        "func": "// Node: Function - Format Speak Response\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    message: \"Audio playback command sent to ESP32\",\n    command_id: msg.commandId,\n    audio_url: msg.audioUrl,\n    volume: msg.volume,\n    timestamp: msg.timestamp\n};\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1760,
-        "y": 1480,
-        "wires": [
-            [
-                "ddc987ed11cbdfe1"
-            ]
-        ]
     },
     {
         "id": "mqtt_pir_in",

@@ -276,12 +276,55 @@ function SecurityDashboard() {
     console.log('Toggle alarm:', !isAlarmActive ? 'ON' : 'OFF');
   };
 
-  const handleSendAudioMessage = (messageType, content) => {
-    // messageType: 'predefined', 'tts', 'file'
-    // content: message text or file
-    console.log('Send audio message:', messageType, content);
-    // Upload to Supabase and send MQTT: doorbell/cmd/speak
-    alert(`Đang gửi tin nhắn audio: ${messageType}`);
+  const handleSendAudioMessage = async (messageType, content) => {
+    // messageType: 'recorded', 'predefined', etc.
+    // content: { blob, url, message } for recorded audio
+    try {
+      console.log('Sending audio message:', messageType, content);
+      
+      if (messageType === 'recorded' && content.blob) {
+        // Step 1: Upload to Supabase Storage
+        const timestamp = Date.now();
+        const fileName = `message_${timestamp}.wav`;
+        
+        const { data, error } = await supabase.storage
+          .from('bell-audio')
+          .upload(fileName, content.blob, {
+            contentType: 'audio/wav',
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (error) {
+          console.error('Upload error:', error);
+          alert('Lỗi khi tải lên file audio!');
+          return;
+        }
+
+        // Step 2: Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('bell-audio')
+          .getPublicUrl(fileName);
+
+        console.log('Audio uploaded:', publicUrl);
+
+        // Step 3: Send command to Node-RED
+        const response = await axios.post('http://localhost:1880/api/commands/speak', {
+          audio_url: publicUrl,
+          volume: volume,
+          message_type: 'custom'
+        });
+
+        if (response.data.success) {
+          alert(`✅ Đã gửi tin nhắn audio: "${content.message}"`);
+        } else {
+          alert('❌ Lỗi khi gửi lệnh!');
+        }
+      }
+    } catch (error) {
+      console.error('Error sending audio message:', error);
+      alert('❌ Lỗi: ' + error.message);
+    }
   };
 
   const handlePlayAlarm = (alert) => {

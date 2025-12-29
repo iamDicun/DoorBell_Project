@@ -1,6 +1,6 @@
 import React from 'react';
-import ActivityLogs from '../../components/Logs/ActivityLogs';
-import LogDetailModal from '../../components/Logs/LogDetailModal';
+import ActivityLogs from '../../components/LogsUsed/ActivityLogs';
+import LogDetailModal from '../../components/LogsUsed/LogDetailModal';
 
 function LogsTab({ 
   logs, 
