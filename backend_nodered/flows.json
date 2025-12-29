@@ -1,8 +1,32 @@
 [
     {
-        "id": "b5b9be5f1518b206",
+        "id": "bd6bb11c58fb203e",
         "type": "tab",
         "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "e38e81b07fd63314",
+        "type": "tab",
+        "label": "Flow 2",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "0f2c315966152f10",
+        "type": "tab",
+        "label": "Flow 3",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "a7b8c9d0e1f2g3h4",
+        "type": "tab",
+        "label": "Flow 4",
         "disabled": false,
         "info": "",
         "env": []
@@ -25,7 +49,7 @@
         "id": "0506134bb93b271d",
         "type": "mqtt-broker",
         "name": "",
-        "broker": "aaf300d67e7447499464e9b37bd11547.s1.eu.hivemq.cloud",
+        "broker": "1cc4e72660cd4655a75fac2f454c5a76.s1.eu.hivemq.cloud",
         "port": "8883",
         "tls": "190054bad0bb2f7c",
         "clientid": "nodered_debug_123",
@@ -54,41 +78,513 @@
         "sessionExpiry": ""
     },
     {
-        "id": "6d12cb3836beb760",
+        "id": "mqtt_button_in",
         "type": "mqtt in",
-        "z": "b5b9be5f1518b206",
-        "name": "",
-        "topic": "doorbell/status",
-        "qos": "0",
-        "datatype": "auto-detect",
+        "z": "bd6bb11c58fb203e",
+        "name": "Button Press Event",
+        "topic": "doorbell/evt/button",
+        "qos": "1",
+        "datatype": "json",
         "broker": "0506134bb93b271d",
         "nl": false,
-        "rap": true,
-        "rh": 0,
+        "rap": false,
         "inputs": 0,
-        "x": 480,
+        "x": 170,
         "y": 160,
         "wires": [
             [
-                "d651a42c78883a1e"
+                "prepare_insert"
             ]
         ]
     },
     {
-        "id": "d651a42c78883a1e",
+        "id": "prepare_insert",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Prepare Insert",
+        "func": "const payload = msg.payload;\n\nif (!payload.image_url || !payload.timestamp) {\n    node.warn('Invalid payload');\n    return null;\n}\n\nmsg.payload = {\n    event_type: 'button_press',\n    image_url: payload.image_url,\n    created_at: new Date(payload.timestamp * 1000).toISOString(),\n    metadata: {\n        source: 'doorbell_button',\n        raw_timestamp: payload.timestamp\n    }\n};\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn msg;",
+        "outputs": 1,
+        "x": 390,
+        "y": 160,
+        "wires": [
+            [
+                "insert_db"
+            ]
+        ]
+    },
+    {
+        "id": "insert_db",
+        "type": "http request",
+        "z": "bd6bb11c58fb203e",
+        "name": "Insert to Supabase",
+        "method": "POST",
+        "url": "https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/events",
+        "x": 590,
+        "y": 160,
+        "wires": [
+            [
+                "debug1"
+            ]
+        ]
+    },
+    {
+        "id": "debug1",
         "type": "debug",
-        "z": "b5b9be5f1518b206",
-        "name": "debug 1",
+        "z": "bd6bb11c58fb203e",
+        "name": "DB Response",
+        "x": 780,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "http_get_events",
+        "type": "http in",
+        "z": "bd6bb11c58fb203e",
+        "name": "GET /api/events",
+        "url": "/api/events",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 310,
+        "wires": [
+            [
+                "build_query"
+            ]
+        ]
+    },
+    {
+        "id": "build_query",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Build Query",
+        "func": "const limit = msg.req.query.limit || 50;\nconst eventType = msg.req.query.type || null;\n\nlet url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/events?order=created_at.desc&limit=' + limit;\n\nif (eventType) {\n    url += '&event_type=eq.' + eventType;\n}\n\nmsg.url = url;\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\n\nreturn msg;",
+        "outputs": 1,
+        "x": 360,
+        "y": 310,
+        "wires": [
+            [
+                "query_db"
+            ]
+        ]
+    },
+    {
+        "id": "query_db",
+        "type": "http request",
+        "z": "bd6bb11c58fb203e",
+        "name": "Query Supabase",
+        "method": "GET",
+        "url": "",
+        "x": 550,
+        "y": 310,
+        "wires": [
+            [
+                "format_response"
+            ]
+        ]
+    },
+    {
+        "id": "format_response",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Format Response",
+        "func": "// Parse response if it's a string\nlet data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        data = [];\n    }\n}\n\nmsg.payload = {\n    success: true,\n    data: data,\n    count: Array.isArray(data) ? data.length : 0\n};\nmsg.statusCode = 200;\nreturn msg;",
+        "outputs": 1,
+        "x": 750,
+        "y": 310,
+        "wires": [
+            [
+                "http_response"
+            ]
+        ]
+    },
+    {
+        "id": "http_response",
+        "type": "http response",
+        "z": "bd6bb11c58fb203e",
+        "name": "",
+        "x": 950,
+        "y": 310,
+        "wires": []
+    },
+    {
+        "id": "mqtt_pir_in",
+        "type": "mqtt in",
+        "z": "e38e81b07fd63314",
+        "name": "PIR Motion Event",
+        "topic": "doorbell/evt/pir",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "0506134bb93b271d",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 160,
+        "y": 160,
+        "wires": [
+            [
+                "split_images"
+            ]
+        ]
+    },
+    {
+        "id": "split_images",
+        "type": "function",
+        "z": "e38e81b07fd63314",
+        "name": "Split Burst Images",
+        "func": "const payload = msg.payload;\n\nif (!payload.image_urls || !Array.isArray(payload.image_urls) || payload.image_urls.length === 0) {\n    node.warn('Invalid payload: missing or empty image_urls');\n    return null;\n}\n\nconst timestamp = payload.timestamp;\nconst baseTimestamp = new Date(timestamp * 1000).toISOString();\n\nconst messages = [];\nfor (let i = 0; i < payload.image_urls.length; i++) {\n    const imageUrl = payload.image_urls[i];\n    \n    messages.push({\n        payload: {\n            event_type: 'pir_motion',\n            image_url: imageUrl,\n            created_at: baseTimestamp,\n            metadata: {\n                source: 'pir_sensor',\n                burst_sequence: i + 1,\n                total_burst: payload.count,\n                raw_timestamp: timestamp\n            }\n        },\n        headers: {\n            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n            'Content-Type': 'application/json',\n            'Prefer': 'return=representation'\n        }\n    });\n}\n\nreturn [messages];",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 160,
+        "wires": [
+            [
+                "insert_db_pir"
+            ]
+        ]
+    },
+    {
+        "id": "insert_db_pir",
+        "type": "http request",
+        "z": "e38e81b07fd63314",
+        "name": "Insert to Supabase",
+        "method": "POST",
+        "paytoqs": "ignore",
+        "url": "https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/events",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 600,
+        "y": 160,
+        "wires": [
+            [
+                "debug_pir"
+            ]
+        ]
+    },
+    {
+        "id": "debug_pir",
+        "type": "debug",
+        "z": "e38e81b07fd63314",
+        "name": "PIR DB Response",
+        "x": 810,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "mqtt_pir_log",
+        "type": "mqtt in",
+        "z": "e38e81b07fd63314",
+        "name": "PIR Motion Log",
+        "topic": "doorbell/evt/pir",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "0506134bb93b271d",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 160,
+        "y": 380,
+        "wires": [
+            [
+                "prepare_motion_log"
+            ]
+        ]
+    },
+    {
+        "id": "prepare_motion_log",
+        "type": "function",
+        "z": "e38e81b07fd63314",
+        "name": "Prepare Motion Log",
+        "func": "const payload = msg.payload;\n\nif (!payload.event || !payload.timestamp) {\n    node.warn('Invalid payload');\n    return null;\n}\n\nmsg.payload = {\n    event_type: 'motion_detected',\n    image_url: null,\n    description: payload.description || 'PIR motion detected',\n    created_at: new Date(payload.timestamp * 1000).toISOString(),\n    metadata: {\n        source: 'pir_sensor',\n        raw_timestamp: payload.timestamp,\n        level: payload.level || 'normal',\n        device_id: payload.device_id,\n        message: 'Phát hiện chuyển động'\n    }\n};\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn msg;",
+        "outputs": 1,
+        "x": 380,
+        "y": 380,
+        "wires": [
+            [
+                "insert_motion_log"
+            ]
+        ]
+    },
+    {
+        "id": "insert_motion_log",
+        "type": "http request",
+        "z": "e38e81b07fd63314",
+        "name": "Insert Motion Log",
+        "method": "POST",
+        "url": "https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/events",
+        "x": 610,
+        "y": 380,
+        "wires": [
+            [
+                "debug_motion"
+            ]
+        ]
+    },
+    {
+        "id": "debug_motion",
+        "type": "debug",
+        "z": "e38e81b07fd63314",
+        "name": "Motion Log Response",
+        "x": 830,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "mqtt_voice_in",
+        "type": "mqtt in",
+        "z": "0f2c315966152f10",
+        "name": "Voice Note Event",
+        "topic": "doorbell/evt/voice",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "0506134bb93b271d",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 170,
+        "y": 160,
+        "wires": [
+            [
+                "prepare_voice_insert"
+            ]
+        ]
+    },
+    {
+        "id": "prepare_voice_insert",
+        "type": "function",
+        "z": "0f2c315966152f10",
+        "name": "Prepare Voice Insert",
+        "func": "const payload = msg.payload;\n\nif (!payload.audio_url || !payload.timestamp) {\n    node.warn('Invalid voice note payload');\n    return null;\n}\n\nmsg.payload = {\n    event_type: 'voice_note',\n    audio_url: payload.audio_url,\n    description: 'Voice note recorded',\n    created_at: new Date(payload.timestamp * 1000).toISOString(),\n    metadata: {\n        source: 'doorbell_microphone',\n        device_id: payload.device_id || 'ESP32_DOORBELL',\n        duration_ms: payload.duration_ms || 0,\n        raw_timestamp: payload.timestamp\n    }\n};\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 160,
+        "wires": [
+            [
+                "insert_voice_db"
+            ]
+        ]
+    },
+    {
+        "id": "insert_voice_db",
+        "type": "http request",
+        "z": "0f2c315966152f10",
+        "name": "Insert Voice to DB",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/events",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 630,
+        "y": 160,
+        "wires": [
+            [
+                "debug_voice"
+            ]
+        ]
+    },
+    {
+        "id": "debug_voice",
+        "type": "debug",
+        "z": "0f2c315966152f10",
+        "name": "Voice DB Response",
         "active": true,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
+        "complete": "false",
         "statusVal": "",
         "statusType": "auto",
-        "x": 720,
+        "x": 840,
         "y": 160,
+        "wires": []
+    },
+    {
+        "id": "mqtt_sensor_in",
+        "type": "mqtt in",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "Sensor Temperature",
+        "topic": "doorbell/sensor/temp",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "0506134bb93b271d",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 170,
+        "y": 160,
+        "wires": [
+            [
+                "prepare_sensor_insert"
+            ]
+        ]
+    },
+    {
+        "id": "prepare_sensor_insert",
+        "type": "function",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "Prepare Sensor Insert",
+        "func": "const payload = msg.payload;\n\nif (!payload.value || !payload.timestamp) {\n    node.warn('Invalid sensor payload');\n    return null;\n}\n\nmsg.payload = {\n    sensor_type: 'temperature',\n    temperature: payload.value,\n    humidity: null,\n    created_at: new Date(payload.timestamp * 1000).toISOString(),\n    metadata: {\n        device_id: payload.device_id || 'ESP32_DOORBELL',\n        raw_timestamp: payload.timestamp,\n        unit: payload.unit || 'C'\n    }\n};\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 410,
+        "y": 160,
+        "wires": [
+            [
+                "insert_sensor_db"
+            ]
+        ]
+    },
+    {
+        "id": "insert_sensor_db",
+        "type": "http request",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "Insert Sensor to DB",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/sensor_logs",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 650,
+        "y": 160,
+        "wires": [
+            [
+                "debug_sensor"
+            ]
+        ]
+    },
+    {
+        "id": "debug_sensor",
+        "type": "debug",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "Sensor DB Response",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 870,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "http_get_sensors",
+        "type": "http in",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "GET /api/sensors/latest",
+        "url": "/api/sensors/latest",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 180,
+        "y": 320,
+        "wires": [
+            [
+                "build_sensor_query"
+            ]
+        ]
+    },
+    {
+        "id": "build_sensor_query",
+        "type": "function",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "Build Sensor Query",
+        "func": "const sensorType = msg.req.query.type || 'temperature';\n\nlet url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/sensor_logs';\nurl += '?sensor_type=eq.' + sensorType;\nurl += '&order=created_at.desc&limit=1';\n\nmsg.url = url;\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 320,
+        "wires": [
+            [
+                "query_sensor_db"
+            ]
+        ]
+    },
+    {
+        "id": "query_sensor_db",
+        "type": "http request",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "Query Sensor Data",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 650,
+        "y": 320,
+        "wires": [
+            [
+                "format_sensor_response"
+            ]
+        ]
+    },
+    {
+        "id": "format_sensor_response",
+        "type": "function",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "Format Sensor Response",
+        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        data = [];\n    }\n}\n\nif (Array.isArray(data) && data.length > 0) {\n    msg.payload = {\n        success: true,\n        data: data[0],\n        timestamp: new Date().toISOString()\n    };\n} else {\n    msg.payload = {\n        success: false,\n        data: null,\n        message: 'No sensor data found'\n    };\n}\n\nmsg.statusCode = 200;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 880,
+        "y": 320,
+        "wires": [
+            [
+                "http_sensor_response"
+            ]
+        ]
+    },
+    {
+        "id": "http_sensor_response",
+        "type": "http response",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "Sensor Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1100,
+        "y": 320,
         "wires": []
     }
 ]

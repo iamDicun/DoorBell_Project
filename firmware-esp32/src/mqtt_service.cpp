@@ -140,26 +140,8 @@ void mqttServiceLoop() {
         mqttClient.loop();
     }
     
-    // Send heartbeat every 30 seconds
-    if (millis() - lastHeartbeat > 30000) {
-        lastHeartbeat = millis();
-        
-        // Build telemetry JSON with enhanced metadata
-        char telemetry[384];
-        snprintf(telemetry, sizeof(telemetry),
-                 "{\"status\":\"online\",\"heap\":%u,\"rssi\":%d,\"uptime\":%lu,"
-                 "\"firmware_version\":\"1.0.0\",\"ip\":\"%s\",\"reconnect_count\":%d,"
-                 "\"device_id\":\"%s\",\"timestamp\":%lu}",
-                 ESP.getFreeHeap(),
-                 WiFi.RSSI(),
-                 millis() / 1000,
-                 WiFi.localIP().toString().c_str(),
-                 reconnectCount,
-                 getDeviceId(),
-                 getTimestamp());
-        
-        mqttPublishJson(MQTT_TOPIC_HEARTBEAT, telemetry);
-    }
+    // Heartbeat removed - use TOPIC_SENSOR_TEMP for device health monitoring
+    // TODO: Implement telemetry if needed in future
 }
 
 void mqttPublishJson(const char* topic, const char* payload) {
@@ -268,7 +250,7 @@ void mqttPublishTemperature(float temperatureC) {
              getDeviceId(),
              getTimestamp());
     
-    mqttPublishJson("doorbell/sensors/temperature", jsonBuffer);
+    mqttPublishJson(TOPIC_SENSOR_TEMP, jsonBuffer);
 }
 
 // Publish distance measurement
@@ -307,8 +289,8 @@ static void mqttCallback(char* topic, byte* payload, unsigned int length) {
     
     Serial.printf("[MQTT] Message on topic %s: %s\n", topic, message);
     
-    // Handle command topic
-    if (strcmp(topic, MQTT_TOPIC_COMMAND) == 0) {
+    // Parse command topic and handle accordingly
+    if (strncmp(topic, "doorbell/cmd/", 13) == 0) {
         mqttHandleCommandPayload(message);
     }
 }
@@ -358,16 +340,7 @@ bool mqttReconnect() {
             Serial.printf("✓ [MQTT] Subscribed to %s\n", MQTT_TOPIC_COMMAND);
         }
         
-        // Publish online status with details
-        char msg[128];
-        snprintf(msg, sizeof(msg),
-                 "{\"status\":\"online\",\"ip\":\"%s\",\"rssi\":%d,\"uptime\":%lu}",
-                 WiFi.localIP().toString().c_str(),
-                 WiFi.RSSI(),
-                 millis() / 1000);
-        mqttPublishJson(MQTT_TOPIC_STATUS, msg);
-        
-        Serial.println("✓ [MQTT] Published online status");
+        Serial.println("✓ [MQTT] Connection established");
         Serial.println("========================================\n");
         
         return true;

@@ -1,0 +1,18 @@
+.sensor-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 12px;
+}
+
+.sensor-name {
+  font-weight: 500;
+}
+
+.sensor-type {
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
+}

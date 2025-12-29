@@ -5,6 +5,70 @@
 #include "config.h"
 
 static WiFiClientSecure uploadSecureClient;
+static String lastUploadedUrl = "";
+
+const char* getLastUploadedUrl() {
+    return lastUploadedUrl.c_str();
+}
+
+void setLastUploadedUrl(const char* url) {
+    lastUploadedUrl = String(url);
+}
+
+bool uploadToSupabase(const uint8_t* data, size_t len, const char* bucket, const char* filename) {
+    if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("[SUPABASE] WiFi not connected");
+        return false;
+    }
+    
+    // Build Supabase Storage API URL
+    String url = String(SUPABASE_URL) + "/storage/v1/object/" + bucket + "/" + filename;
+    Serial.printf("[SUPABASE] Uploading to: %s (%u bytes)\n", url.c_str(), (unsigned)len);
+    
+    HTTPClient http;
+    uploadSecureClient.setInsecure(); // Skip certificate validation
+    
+    if (!http.begin(uploadSecureClient, url)) {
+        Serial.println("[SUPABASE] Failed to begin HTTP connection");
+        return false;
+    }
+    
+    // Set required headers for Supabase Storage API
+    http.addHeader("Authorization", String("Bearer ") + SUPABASE_ANON_KEY);
+    http.addHeader("Content-Type", "image/jpeg");
+    http.addHeader("x-upsert", "true"); // Overwrite if exists
+    http.setTimeout(30000); // 30 second timeout
+    
+    int httpCode = http.POST((uint8_t*)data, len);
+    
+    bool success = false;
+    String publicUrl = "";
+    
+    if (httpCode > 0) {
+        Serial.printf("[SUPABASE] Response code: %d\n", httpCode);
+        
+        if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_CREATED) {
+            String response = http.getString();
+            Serial.printf("[SUPABASE] Response: %s\n", response.c_str());
+            
+            // Build public URL
+            publicUrl = String(SUPABASE_URL) + "/storage/v1/object/public/" + bucket + "/" + filename;
+            Serial.printf("[SUPABASE] Public URL: %s\n", publicUrl.c_str());
+            
+            setLastUploadedUrl(publicUrl.c_str());
+            success = true;
+        } else {
+            Serial.printf("[SUPABASE] HTTP error: %d\n", httpCode);
+            String response = http.getString();
+            Serial.printf("[SUPABASE] Error response: %s\n", response.c_str());
+        }
+    } else {
+        Serial.printf("[SUPABASE] Request failed: %s\n", http.errorToString(httpCode).c_str());
+    }
+    
+    http.end();
+    return success;
+}
 
 bool uploadClientPost(const char* endpoint, const uint8_t* data, size_t len, const char* contentType, 
                       const char* eventType, unsigned long timestamp) {
@@ -42,12 +106,27 @@ bool uploadClientPost(const char* endpoint, const uint8_t* data, size_t len, con
     int httpCode = http.POST((uint8_t*)data, len);
     
     bool success = false;
+    String uploadedUrl = "";
+    
     if (httpCode > 0) {
         Serial.printf("[UPLOAD] Response code: %d\n", httpCode);
         
         if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_CREATED || httpCode == HTTP_CODE_ACCEPTED) {
             String response = http.getString();
             Serial.printf("[UPLOAD] Response: %s\n", response.c_str());
+            
+            // Parse JSON response to get URL
+            // Expected: {"success":true,"url":"https://...supabase.co/..."}
+            int urlStart = response.indexOf("\"url\":\"");
+            if (urlStart != -1) {
+                urlStart += 7; // Skip "url":"
+                int urlEnd = response.indexOf("\"", urlStart);
+                if (urlEnd != -1) {
+                    uploadedUrl = response.substring(urlStart, urlEnd);
+                    Serial.printf("[UPLOAD] Extracted URL: %s\n", uploadedUrl.c_str());
+                }
+            }
+            
             success = true;
         } else {
             Serial.printf("[UPLOAD] HTTP error: %d\n", httpCode);
@@ -57,6 +136,12 @@ bool uploadClientPost(const char* endpoint, const uint8_t* data, size_t len, con
     }
     
     http.end();
+    
+    // Store URL for caller to retrieve
+    if (success && uploadedUrl.length() > 0) {
+        setLastUploadedUrl(uploadedUrl.c_str());
+    }
+    
     return success;
 }
 

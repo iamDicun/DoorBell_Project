@@ -119,23 +119,13 @@ static void playAudioFile(const char* filepath) {
 void playDingDong() {
     Serial.println("[FEATURE] Playing Ding-Dong (Style 1)");
     playAudioFile(AUDIO_DING_DONG);
-    
-    char msg[192];
-    snprintf(msg, sizeof(msg), 
-             "{\"event\":\"press\",\"chime\":\"style1\",\"device_id\":\"%s\",\"timestamp\":%lu}",
-             getDeviceId(), getTimestamp());
-    mqttPublishJson(MQTT_TOPIC_STATUS, msg);
+    // No MQTT needed - ding-dong is just local sound
 }
 
 void playDingDong2() {
     Serial.println("[FEATURE] Playing Ding-Dong (Style 2)");
     playAudioFile(AUDIO_DING_DONG_2);
-    
-    char msg[192];
-    snprintf(msg, sizeof(msg), 
-             "{\"event\":\"press\",\"chime\":\"style2\",\"device_id\":\"%s\",\"timestamp\":%lu}",
-             getDeviceId(), getTimestamp());
-    mqttPublishJson(MQTT_TOPIC_STATUS, msg);
+    // No MQTT needed - ding-dong is just local sound
 }
 
 void playDingDong3() {
@@ -173,12 +163,7 @@ void playDingDong3() {
         Serial.println("[FEATURE] File not found, using fallback tone");
         playTestTone();
     }
-    
-    char msg[192];
-    snprintf(msg, sizeof(msg), 
-             "{\"event\":\"press\",\"chime\":\"style3\",\"device_id\":\"%s\",\"timestamp\":%lu}",
-             getDeviceId(), getTimestamp());
-    mqttPublishJson(MQTT_TOPIC_STATUS, msg);
+    // No MQTT needed - ding-dong is just local sound
 }
 
 void startVoiceNoteRecording() {
@@ -235,21 +220,29 @@ void stopVoiceNoteRecording() {
             memcpy(wavBuffer, wavHeader, 44);
             memcpy(wavBuffer + 44, (uint8_t*)getRecordBuffer(), dataSize);
             
-            bool uploaded = uploadWithRetry(ENDPOINT_VOICE_NOTE, wavBuffer, 44 + dataSize, "audio/wav", 3,
-                                          "voice_note", getTimestamp());
+            // Generate filename: voice_{timestamp}.wav
+            unsigned long timestamp = getTimestamp();
+            char filename[64];
+            snprintf(filename, sizeof(filename), "voice_%lu.wav", timestamp);
+            
+            // Upload directly to Supabase Storage
+            bool uploaded = uploadToSupabase(wavBuffer, 44 + dataSize, SUPABASE_BUCKET_AUDIO, filename);
             free(wavBuffer);
             
             if (uploaded) {
                 Serial.println("[FEATURE] Voice note uploaded successfully");
-                char msg[256];
-                snprintf(msg, sizeof(msg),
-                         "{\"event\":\"voice_note_uploaded\",\"size\":%u,\"duration_seconds\":%.1f,"
-                         "\"device_id\":\"%s\",\"timestamp\":%lu}",
-                         44 + dataSize,
-                         (float)dataSize / (MIC_SAMPLE_RATE * 2),
-                         getDeviceId(),
-                         getTimestamp());
-                mqttPublishJson(MQTT_TOPIC_STATUS, msg);
+                
+                // Flow 3: Get URL from upload response and publish to TOPIC_EVT_VOICE
+                const char* audioUrl = getLastUploadedUrl();
+                if (audioUrl && strlen(audioUrl) > 0) {
+                    char msg[512];
+                    snprintf(msg, sizeof(msg), "{\"audio_url\":\"%s\",\"timestamp\":%lu,\"device_id\":\"ESP32_DOORBELL\",\"duration_ms\":%lu}", 
+                             audioUrl, getTimestamp(), (unsigned long)(dataSize * 1000 / (MIC_SAMPLE_RATE * 2)));
+                    mqttPublishJson(TOPIC_EVT_VOICE, msg);
+                    Serial.printf("[FEATURE] Published voice note to MQTT: %s\n", audioUrl);
+                } else {
+                    Serial.println("[FEATURE] Warning: No audio URL returned from upload");
+                }
             } else {
                 Serial.println("[FEATURE] Voice note upload failed");
             }
@@ -266,20 +259,33 @@ void captureGuestPhoto() {
     if (fb) {
         Serial.printf("[FEATURE] Photo captured: %u bytes\n", fb->len);
         
-        // Upload photo with metadata headers
-        bool uploaded = uploadWithRetry(ENDPOINT_GUEST_IMG, fb->buf, fb->len, "image/jpeg", 3, 
-                                        "doorbell_press", getTimestamp());
+        // Generate filename: timestamp_button.jpg
+        unsigned long timestamp = getTimestamp();
+        char filename[64];
+        snprintf(filename, sizeof(filename), "%lu_button.jpg", timestamp);
+        
+        // Upload directly to Supabase Storage
+        bool uploaded = uploadToSupabase(fb->buf, fb->len, SUPABASE_BUCKET_IMAGES, filename);
         
         if (uploaded) {
-            Serial.println("[FEATURE] Guest photo uploaded");
-            char msg[256];
-            snprintf(msg, sizeof(msg),
-                     "{\"event\":\"guest_photo_captured\",\"size\":%u,"
-                     "\"device_id\":\"%s\",\"timestamp\":%lu}",
-                     fb->len,
-                     getDeviceId(),
-                     getTimestamp());
-            mqttPublishJson(MQTT_TOPIC_STATUS, msg);
+            Serial.println("[FEATURE] Guest photo uploaded to Supabase");
+            
+            // Get public URL from Supabase
+            const char* imageUrl = getLastUploadedUrl();
+            
+            // Publish MQTT to doorbell/evt/button with new payload format
+            char msg[512];
+            if (imageUrl && strlen(imageUrl) > 0) {
+                snprintf(msg, sizeof(msg),
+                         "{\"image_url\":\"%s\",\"timestamp\":%lu,\"description\":\"Button press photo\"}",
+                         imageUrl, timestamp);
+                mqttPublishJson(TOPIC_EVT_BUTTON, msg);
+                Serial.printf("[FEATURE] Published to %s: %s\n", TOPIC_EVT_BUTTON, msg);
+            } else {
+                Serial.println("[FEATURE] Warning: No URL returned from upload");
+            }
+        } else {
+            Serial.println("[FEATURE] Failed to upload photo to Supabase");
         }
         
         releaseFrame(fb);
@@ -289,35 +295,74 @@ void captureGuestPhoto() {
 }
 
 void captureSecurityBurst() {
-    Serial.println("[FEATURE] Capturing security burst");
+    Serial.println("[FEATURE] Capturing security burst (PIR triggered)");
     
+    unsigned long timestamp = getTimestamp();
+    String imageUrls[CAMERA_BURST_COUNT];
+    int successCount = 0;
+    
+    // Capture and upload each photo in burst
     for (int i = 0; i < CAMERA_BURST_COUNT; i++) {
         camera_fb_t* fb = captureFrame();
         if (fb) {
-            Serial.printf("[FEATURE] Burst photo %d: %u bytes\n", i + 1, fb->len);
+            Serial.printf("[FEATURE] Burst photo %d/%d: %u bytes\n", i + 1, CAMERA_BURST_COUNT, fb->len);
             
-            // Upload with metadata headers
-            char endpoint[64];
-            snprintf(endpoint, sizeof(endpoint), "%s?seq=%d", ENDPOINT_BURST_IMG, i);
-            uploadWithRetry(endpoint, fb->buf, fb->len, "image/jpeg", 2, 
-                          "pir_burst", getTimestamp());
+            // Generate filename: timestamp_pir_1.jpg, timestamp_pir_2.jpg, ...
+            char filename[64];
+            snprintf(filename, sizeof(filename), "%lu_pir_%d.jpg", timestamp, i + 1);
+            
+            // Upload to Supabase Storage
+            bool uploaded = uploadToSupabase(fb->buf, fb->len, SUPABASE_BUCKET_IMAGES, filename);
+            
+            if (uploaded) {
+                const char* imageUrl = getLastUploadedUrl();
+                if (imageUrl && strlen(imageUrl) > 0) {
+                    imageUrls[i] = String(imageUrl);
+                    successCount++;
+                    Serial.printf("[FEATURE] Burst %d uploaded: %s\n", i + 1, imageUrl);
+                }
+            } else {
+                Serial.printf("[FEATURE] Failed to upload burst photo %d\n", i + 1);
+            }
             
             releaseFrame(fb);
+        } else {
+            Serial.printf("[FEATURE] Failed to capture burst photo %d\n", i + 1);
         }
         
+        // Delay between shots
         if (i < CAMERA_BURST_COUNT - 1) {
             delay(CAMERA_BURST_DELAY_MS);
         }
     }
     
-    // Enhanced MQTT payload with metadata
-    char msg[256];
-    snprintf(msg, sizeof(msg),
-             "{\"status\":\"detected\",\"count\":%d,\"device_id\":\"%s\",\"timestamp\":%lu}",
-             CAMERA_BURST_COUNT,
-             getDeviceId(),
-             getTimestamp());
-    mqttPublishJson(MQTT_TOPIC_SECURITY, msg);
+    // Publish MQTT to doorbell/evt/pir_alert with array of image URLs (HIGH ALERT)
+    if (successCount > 0) {
+        char msg[1024];
+        char urlsJson[800];
+        urlsJson[0] = '\0';
+        
+        // Build JSON array of URLs: ["url1","url2","url3"]
+        strcat(urlsJson, "[");
+        for (int i = 0; i < CAMERA_BURST_COUNT; i++) {
+            if (imageUrls[i].length() > 0) {
+                if (strlen(urlsJson) > 1) strcat(urlsJson, ",");
+                strcat(urlsJson, "\"");
+                strcat(urlsJson, imageUrls[i].c_str());
+                strcat(urlsJson, "\"");
+            }
+        }
+        strcat(urlsJson, "]");
+        
+        snprintf(msg, sizeof(msg),
+                 "{\"image_urls\":%s,\"count\":%d,\"timestamp\":%lu,\"level\":\"high\",\"description\":\"High alert burst images\"}",
+                 urlsJson, successCount, timestamp);
+        
+        mqttPublishJson(TOPIC_EVT_PIR_ALERT, msg);
+        Serial.printf("[FEATURE] Published to %s: %s\n", TOPIC_EVT_PIR_ALERT, msg);
+    } else {
+        Serial.println("[FEATURE] No photos uploaded in burst");
+    }
 }
 
 void activateAlarm() {
@@ -328,8 +373,7 @@ void activateAlarm() {
     
     // Play alarm sound from SPIFFS
     playAudioFile(AUDIO_ALARM);
-    
-    mqttPublishJson(MQTT_TOPIC_SECURITY, "{\"event\":\"alarm_activated\"}");
+    // Alarm is triggered by PIR HIGH ALERT, no separate MQTT needed
 }
 
 void deactivateAlarm() {
@@ -337,8 +381,7 @@ void deactivateAlarm() {
     
     Serial.println("[FEATURE] Deactivating alarm");
     isAlarmActive = false;
-    
-    mqttPublishJson(MQTT_TOPIC_SECURITY, "{\"event\":\"alarm_deactivated\"}");
+    // No MQTT needed - alarm state is local
 }
 
 // --- Audio & Speaker Features ---
@@ -354,8 +397,7 @@ void startTwoWayAudio() {
     
     // Start speaker for incoming audio
     startWebStream();
-    
-    mqttPublishJson(MQTT_TOPIC_STATUS, "{\"event\":\"two_way_audio_started\"}");
+    // TODO: Implement two-way audio streaming (future feature)
 }
 
 void stopTwoWayAudio() {
@@ -366,8 +408,7 @@ void stopTwoWayAudio() {
     
     setWsAudioStreaming(false);
     stopWebStream();
-    
-    mqttPublishJson(MQTT_TOPIC_STATUS, "{\"event\":\"two_way_audio_stopped\"}");
+    // Two-way audio stopped
 }
 
 void playSampleMessage(const char* messageType) {
@@ -389,10 +430,7 @@ void setVolumeLevel(float level) {
     level = constrain(level, 0.0f, 1.5f);
     setSpeakerVolume(level);
     Serial.printf("[FEATURE] Volume set to %.2f\n", level);
-    
-    char msg[64];
-    snprintf(msg, sizeof(msg), "{\"event\":\"volume_changed\",\"level\":%.2f}", level);
-    mqttPublishJson(MQTT_TOPIC_STATUS, msg);
+    // Volume change is local only, controlled via TOPIC_CMD_SETTINGS
 }
 
 // --- Environment Features ---
@@ -406,13 +444,7 @@ void readEnvironmentTemperature() {
         // Publish to MQTT
         mqttPublishTemperature(temp);
         
-        // Check for extreme temperatures
-        if (temp > 45.0f || temp < -10.0f) {
-            char alert[128];
-            snprintf(alert, sizeof(alert), 
-                     "{\"event\":\"extreme_temperature\",\"value\":%.1f,\"unit\":\"C\"}", temp);
-            mqttPublishJson(MQTT_TOPIC_SECURITY, alert);
-        }
+        // Temperature published to TOPIC_SENSOR_TEMP via mqttPublishTemperature()
     } else {
         Serial.println("[FEATURE] Failed to read temperature");
     }
@@ -442,6 +474,15 @@ void registerPIRDetection(unsigned long timestamp) {
     }
     Serial.printf("[PIR-REG] Detection registered at %lu ms (total count: %d)\n", 
                  timestamp, pirDetectionCount);
+    
+    // Flow 2.1: Publish normal motion detection to MQTT (for activity log)
+    char msg[256];
+    snprintf(msg, sizeof(msg),
+             "{\"event\":\"motion_detected\",\"timestamp\":%lu,\"level\":\"normal\",\"device_id\":\"%s\",\"description\":\"PIR motion detected\"}",
+             getTimestamp(),
+             getDeviceId());
+    mqttPublishJson(TOPIC_EVT_PIR, msg);
+    Serial.printf("[PIR-REG] Published to %s: %s\n", TOPIC_EVT_PIR, msg);
 }
 
 PIRAlertLevel checkPIRAlertLevel() {
@@ -491,27 +532,13 @@ void handlePIRAlert(PIRAlertLevel level) {
     switch (level) {
         case ALERT_HIGH:
             Serial.println("[PIR] HIGH ALERT - Suspicious activity detected!");
-            captureSecurityBurst();
+            captureSecurityBurst();  // This will publish to TOPIC_EVT_PIR_ALERT with images
             activateAlarm();
-            {
-                char alertMsg[256];
-                snprintf(alertMsg, sizeof(alertMsg),
-                    "{\"event\":\"pir_alert\",\"level\":\"high\",\"message\":\"Suspicious loitering detected\",\"detections\":%d,\"device_id\":\"%s\",\"timestamp\":%lu}",
-                    pirDetectionCount, getDeviceId(), getTimestamp());
-                mqttPublishJson(MQTT_TOPIC_SECURITY, alertMsg);
-            }
             break;
             
         case ALERT_MEDIUM:
             Serial.println("[PIR] MEDIUM ALERT - Person detected");
-            captureGuestPhoto();
-            {
-                char alertMsg[256];
-                snprintf(alertMsg, sizeof(alertMsg),
-                    "{\"event\":\"pir_alert\",\"level\":\"medium\",\"message\":\"Person lingering at door\",\"detections\":%d,\"device_id\":\"%s\",\"timestamp\":%lu}",
-                    pirDetectionCount, getDeviceId(), getTimestamp());
-                mqttPublishJson(MQTT_TOPIC_SECURITY, alertMsg);
-            }
+            captureGuestPhoto();  // This will publish to TOPIC_EVT_BUTTON with image
             break;
             
         case ALERT_NORMAL:
@@ -519,13 +546,7 @@ void handlePIRAlert(PIRAlertLevel level) {
             if (isAlarmActive) {
                 deactivateAlarm();
             }
-            {
-                char alertMsg[256];
-                snprintf(alertMsg, sizeof(alertMsg),
-                    "{\"event\":\"pir_alert\",\"level\":\"normal\",\"message\":\"Motion cleared\",\"detections\":%d,\"device_id\":\"%s\",\"timestamp\":%lu}",
-                    pirDetectionCount, getDeviceId(), getTimestamp());
-                mqttPublishJson(MQTT_TOPIC_SECURITY, alertMsg);
-            }
+            // No MQTT needed for normal state
             break;
     }
 }

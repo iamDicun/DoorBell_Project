@@ -1,0 +1,35 @@
+.alarm-toggle {
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: bold;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 100px;
+}
+
+.alarm-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.alarm-toggle.active {
+  background: #ff4444;
+  border-color: #ff4444;
+  animation: pulse 2s infinite;
+}
+
+.alarm-toggle.active:hover {
+  background: #ff0000;
+  border-color: #ff0000;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(255, 68, 68, 0);
+  }
+}

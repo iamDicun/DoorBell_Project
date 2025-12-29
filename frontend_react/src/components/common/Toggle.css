@@ -1,0 +1,32 @@
+.toggle {
+  position: relative;
+  width: 56px;
+  height: 32px;
+  border-radius: 9999px;
+  cursor: pointer;
+  border: none;
+  transition: background 0.3s;
+}
+
+.toggle.off {
+  background: rgba(255,255,255,0.2);
+}
+
+.toggle.on {
+  background: #fff;
+}
+
+.toggle-circle {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 24px;
+  height: 24px;
+  background: #000;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.toggle.on .toggle-circle {
+  transform: translateX(24px);
+}

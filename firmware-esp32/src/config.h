@@ -2,8 +2,14 @@
 #define CONFIG_H
 
 // --- WIFI CONFIGURATION ---
-#define WIFI_SSID           "nvkhai"
-#define WIFI_PASS           "nvkhai238"
+#define WIFI_SSID           "Dinh"
+#define WIFI_PASS           "dicuongne"
+
+// SUPABASE CONFIGURATION
+#define SUPABASE_URL "https://xznnnklhqkccylxxzsdh.supabase.co"
+#define SUPABASE_ANON_KEY "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8"
+#define SUPABASE_BUCKET_IMAGES "bell-images"
+#define SUPABASE_BUCKET_AUDIO "bell-audio"
 
 // --- MQTT (HiveMQ Cloud) ---
 #define MQTT_BROKER         "1cc4e72660cd4655a75fac2f454c5a76.s1.eu.hivemq.cloud"
@@ -11,14 +17,24 @@
 #define MQTT_PORT_WSS       8884
 #define MQTT_USERNAME       "esp_doorbell"
 #define MQTT_PASSWORD       "Hcmus123"
-#define MQTT_TOPIC_STATUS       "doorbell/status"
-#define MQTT_TOPIC_SECURITY     "doorbell/security"
-#define MQTT_TOPIC_COMMAND      "doorbell/command"
-#define MQTT_TOPIC_TELEMETRY    "doorbell/telemetry"
-#define MQTT_TOPIC_HEARTBEAT    "doorbell/heartbeat"
-#define MQTT_TOPIC_MOTION       "doorbell/sensors/motion"
-#define MQTT_TOPIC_TEMPERATURE  "doorbell/sensors/temperature"
-#define MQTT_TOPIC_DISTANCE     "doorbell/sensors/distance" // bỏ
+
+#define TOPIC_EVT_BUTTON "doorbell/evt/button"
+#define TOPIC_EVT_PIR "doorbell/evt/pir"  // Normal motion detection (Flow 2.1)
+#define TOPIC_EVT_PIR_ALERT "doorbell/evt/pir_alert"  // HIGH ALERT with burst images (Flow 2)
+#define TOPIC_EVT_VOICE "doorbell/evt/voice"
+#define TOPIC_EVT_SNAPSHOT "doorbell/evt/snapshot"
+#define TOPIC_SENSOR_TEMP "doorbell/sensor/temp"
+
+#define TOPIC_CMD_SNAPSHOT "doorbell/cmd/snapshot"
+#define TOPIC_CMD_SPEAK "doorbell/cmd/speak"
+#define TOPIC_CMD_SIREN "doorbell/cmd/siren"
+#define TOPIC_CMD_SETTINGS "doorbell/cmd/settings"
+
+// Generic wildcard for all commands (for subscription)
+#define MQTT_TOPIC_COMMAND "doorbell/cmd/#"
+
+// Telemetry topic
+#define MQTT_TOPIC_TELEMETRY "doorbell/telemetry"
 
 // --- Backend Upload Endpoints (HTTP POST) ---
 #define BACKEND_BASE_URL    "http://192.168.137.1:3000"

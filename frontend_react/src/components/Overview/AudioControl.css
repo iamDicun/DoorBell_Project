@@ -1,0 +1,43 @@
+.btn-push {
+  width: 100%;
+  padding: 24px;
+  font-size: 18px;
+  font-weight: bold;
+  border: 2px solid #fff;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-push.off {
+  background: transparent;
+  color: #fff;
+}
+
+.btn-push.off:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.btn-push.on {
+  background: #fff;
+  color: #000;
+}
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.volume-slider {
+  flex: 1;
+  height: 8px;
+  cursor: pointer;
+}
+
+.volume-value {
+  font-size: 14px;
+  font-weight: 500;
+  width: 48px;
+  text-align: right;
+}
