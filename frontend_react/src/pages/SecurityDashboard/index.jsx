@@ -33,12 +33,13 @@ function SecurityDashboard() {
   const [voicemails, setVoicemails] = useState([]);
   const [isLoadingVoicemails, setIsLoadingVoicemails] = useState(false);
 
-  // Fetch events from Node-RED API
+  // Fetch events from Node-RED API (chỉ load 1 lần)
   useEffect(() => {
     const fetchEvents = async () => {
       setIsLoadingEvents(true);
       try {
         const response = await axios.get('http://localhost:1880/api/events?limit=20&type=button_press');
+        console.log('[ImagesTab] API Response:', response.data);
         if (response.data.success) {
           // Transform data for display
           const formattedEvents = response.data.data.map(event => ({
@@ -49,26 +50,18 @@ function SecurityDashboard() {
             event_type: event.event_type,
             metadata: event.metadata
           }));
+          console.log('[ImagesTab] Formatted events:', formattedEvents);
           setEvents(formattedEvents);
         }
       } catch (error) {
-        console.error('Error fetching events:', error);
-        // Fallback to mock data if API fails
-        setEvents([
-          { id: 1, time: '27/11/2025 14:23', image_url: null },
-          { id: 2, time: '27/11/2025 11:15', image_url: null },
-          { id: 3, time: '26/11/2025 16:45', image_url: null }
-        ]);
+        console.error('[ImagesTab] Error fetching events:', error);
+        setEvents([]);
       } finally {
         setIsLoadingEvents(false);
       }
     };
 
     fetchEvents();
-    
-    // Poll for new events every 5 seconds
-    const interval = setInterval(fetchEvents, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   // Fetch PIR alerts (burst images)
@@ -117,10 +110,6 @@ function SecurityDashboard() {
     };
 
     fetchPirAlerts();
-    
-    // Poll for new alerts every 5 seconds
-    const interval = setInterval(fetchPirAlerts, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   // Fetch activity logs from Supabase (Flow 2.1 - PIR normal motion)
@@ -128,18 +117,22 @@ function SecurityDashboard() {
     const fetchActivityLogs = async () => {
       setIsLoadingLogs(true);
       try {
+        console.log('[LogsTab] Fetching activity logs from Supabase...');
         const { data, error } = await supabase
           .from('events')
           .select('*')
-          .eq('event_type', 'pir_motion')
+          .eq('event_type', 'motion_detected')
           .order('created_at', { ascending: false })
           .limit(50);
 
         if (error) {
-          console.error('Error fetching logs from Supabase:', error);
+          console.error('[LogsTab] Supabase error:', error);
           setActivityLogs([]);
           return;
         }
+
+        console.log('[LogsTab] Raw data from Supabase:', data);
+        console.log('[LogsTab] Number of records:', data?.length || 0);
 
         // Transform Supabase data for display
         const formattedLogs = data.map(event => {
@@ -182,9 +175,10 @@ function SecurityDashboard() {
           };
         });
 
+        console.log('[LogsTab] Formatted logs:', formattedLogs);
         setActivityLogs(formattedLogs);
       } catch (error) {
-        console.error('Error in fetchActivityLogs:', error);
+        console.error('[LogsTab] Exception in fetchActivityLogs:', error);
         setActivityLogs([]);
       } finally {
         setIsLoadingLogs(false);
@@ -192,39 +186,51 @@ function SecurityDashboard() {
     };
 
     fetchActivityLogs();
-    
-    // Poll for new logs every 10 seconds
-    const interval = setInterval(fetchActivityLogs, 10000);
-    return () => clearInterval(interval);
   }, []);
 
-  // Fetch voice notes from Node-RED API
+  // Fetch voice notes từ bảng voice_notes trong Supabase
   useEffect(() => {
     const fetchVoicemails = async () => {
       setIsLoadingVoicemails(true);
       try {
-        const response = await axios.get('http://localhost:1880/api/events?limit=20&type=voice_note');
-        if (response.data.success && Array.isArray(response.data.data)) {
-          // Transform data for display
-          const formattedVoicemails = response.data.data.map(event => {
-            const durationSec = (event.metadata?.duration_ms || 0) / 1000;
-            const minutes = Math.floor(durationSec / 60);
-            const seconds = Math.floor(durationSec % 60);
-            
-            return {
-              id: event.id,
-              audio_url: event.audio_url,
-              time: new Date(event.created_at).toLocaleString('vi-VN'),
-              duration: `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`,
-              name: `Tin nhắn #${String(event.id).padStart(3, '0')}`,
-              device_id: event.metadata?.device_id || 'ESP32_DOORBELL',
-              timestamp: event.created_at
-            };
-          });
-          setVoicemails(formattedVoicemails);
+        console.log('[VoicemailTab] Fetching voice notes from Supabase...');
+        const { data, error } = await supabase
+          .from('voice_notes')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(20);
+
+        if (error) {
+          console.error('[VoicemailTab] Supabase error:', error);
+          setVoicemails([]);
+          return;
         }
+
+        console.log('[VoicemailTab] Raw data from Supabase:', data);
+        console.log('[VoicemailTab] Number of records:', data?.length || 0);
+
+        // Transform data for display
+        const formattedVoicemails = data.map(voiceNote => {
+          const durationSec = voiceNote.duration_seconds || 0;
+          const minutes = Math.floor(durationSec / 60);
+          const seconds = durationSec % 60;
+          
+          return {
+            id: voiceNote.id,
+            audio_url: voiceNote.audio_url,
+            time: new Date(voiceNote.created_at).toLocaleString('vi-VN'),
+            duration: `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`,
+            name: `Tin nhắn #${String(voiceNote.id).padStart(3, '0')}`,
+            device_id: voiceNote.metadata?.device_id || 'ESP32_DOORBELL',
+            timestamp: voiceNote.created_at,
+            is_listened: voiceNote.is_listened
+          };
+        });
+
+        console.log('[VoicemailTab] Formatted voicemails:', formattedVoicemails);
+        setVoicemails(formattedVoicemails);
       } catch (error) {
-        console.error('Error fetching voicemails:', error);
+        console.error('[VoicemailTab] Exception in fetchVoicemails:', error);
         setVoicemails([]);
       } finally {
         setIsLoadingVoicemails(false);
@@ -232,10 +238,6 @@ function SecurityDashboard() {
     };
 
     fetchVoicemails();
-    
-    // Poll for new voicemails every 10 seconds
-    const interval = setInterval(fetchVoicemails, 10000);
-    return () => clearInterval(interval);
   }, []);
 
   // Fetch sensor data from Supabase (Flow 4)
@@ -257,10 +259,6 @@ function SecurityDashboard() {
     };
 
     fetchSensorData();
-    
-    // Poll for new sensor data every 5 seconds
-    const interval = setInterval(fetchSensorData, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   // Event handlers
