@@ -78,6 +78,19 @@
         "sessionExpiry": ""
     },
     {
+        "id": "gmail_server",
+        "type": "e-mail mta",
+        "z": "bd6bb11c58fb203e",
+        "name": "Gmail SMTP",
+        "port": "587",
+        "secure": false,
+        "x": 0,
+        "y": 0,
+        "wires": [
+            []
+        ]
+    },
+    {
         "id": "mqtt_button_in",
         "type": "mqtt in",
         "z": "bd6bb11c58fb203e",
@@ -108,9 +121,147 @@
         "y": 160,
         "wires": [
             [
-                "insert_db"
+                "insert_db",
+                "check_dnd_button"
             ]
         ]
+    },
+    {
+        "id": "check_dnd_button",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Check DND & Prepare Email",
+        "func": "// Store original event data\nconst eventData = {\n    type: 'button',\n    image_url: msg.payload.image_url,\n    timestamp: msg.payload.created_at\n};\n\n// Query device settings to check do_not_disturb\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nmsg.eventData = eventData;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 200,
+        "wires": [
+            [
+                "get_dnd_button"
+            ]
+        ]
+    },
+    {
+        "id": "get_dnd_button",
+        "type": "http request",
+        "z": "bd6bb11c58fb203e",
+        "name": "Get DND Setting",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "x": 900,
+        "y": 200,
+        "wires": [
+            [
+                "filter_dnd_button"
+            ]
+        ]
+    },
+    {
+        "id": "filter_dnd_button",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Filter by DND",
+        "func": "let settings = JSON.parse(msg.payload);\nif (Array.isArray(settings)) settings = settings[0];\n\nif (settings.do_not_disturb === true) {\n    node.warn('🔕 DND enabled - skipping button email');\n    return null;\n}\n\n// Proceed with email\nmsg.eventData.notifications_enabled = settings.notifications_enabled;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1100,
+        "y": 200,
+        "wires": [
+            [
+                "get_button_recipients"
+            ]
+        ]
+    },
+    {
+        "id": "get_button_recipients",
+        "type": "http request",
+        "z": "bd6bb11c58fb203e",
+        "name": "Get Recipients",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/email_recipients?is_active=eq.true&notification_types->>button=eq.true",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [
+            {
+                "keyType": "other",
+                "keyValue": "apikey",
+                "valueType": "other",
+                "valueValue": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8"
+            },
+            {
+                "keyType": "other",
+                "keyValue": "Authorization",
+                "valueType": "other",
+                "valueValue": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8"
+            }
+        ],
+        "x": 1330,
+        "y": 200,
+        "wires": [
+            [
+                "send_button_emails"
+            ]
+        ]
+    },
+    {
+        "id": "send_button_emails",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Format Button Emails",
+        "func": "// Parse recipients (handle both string and object)\n// Đoạn này anh làm tốt rồi, giữ nguyên nè\nlet recipients = typeof msg.payload === 'string' ? JSON.parse(msg.payload) : msg.payload;\n\nif (!Array.isArray(recipients) || recipients.length === 0) {\n    node.warn('No active recipients for button notification');\n    return null;\n}\n\nconst eventData = msg.eventData || { timestamp: Date.now() }; // Em thêm cái fallback cho chắc cốp\nconst messages = [];\n\nfor (const recipient of recipients) {\n    messages.push({\n        // QUAN TRỌNG: Đưa mấy cái này ra ngoài root của msg\n        to: recipient.email,\n        topic: '🔔 Doorbell Pressed', // Node Email dùng msg.topic làm Subject nhé!\n        \n        // Nội dung thư thì nhét vào payload\n        payload: `\n            <h2 style=\"color: #2563eb;\">🔔 Doorbell Button Pressed</h2>\n            <p>Someone pressed the doorbell button.</p>\n            <p><strong>Time:</strong> ${new Date(eventData.timestamp).toLocaleString('vi-VN')}</p>\n            ${eventData.image_url ? `<img src=\"${eventData.image_url}\" alt=\"Doorbell Image\" style=\"max-width: 600px; border-radius: 8px;\"/>` : ''}\n            <br/><br/>\n            <p style=\"color: #6b7280; font-size: 12px;\">ESP32 Smart Doorbell</p>\n        `,\n        from: 'ESP32 Doorbell <khoa199939@gmail.com>' // Cái này tùy server có cho override không, nhưng cứ để cũng được\n    });\n}\n\n// Trả về mảng các msg để nó bắn liên thanh cho từng người\nreturn [messages];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1570,
+        "y": 200,
+        "wires": [
+            [
+                "email_out_button"
+            ]
+        ]
+    },
+    {
+        "id": "email_out_button",
+        "type": "e-mail",
+        "z": "bd6bb11c58fb203e",
+        "server": "smtp.gmail.com",
+        "port": "587",
+        "authtype": "BASIC",
+        "saslformat": false,
+        "token": "oauth2Response.access_token",
+        "secure": false,
+        "tls": false,
+        "name": "",
+        "dname": "",
+        "x": 1770,
+        "y": 200,
+        "wires": []
     },
     {
         "id": "insert_db",
@@ -784,7 +935,6 @@
         "proxy": "",
         "insecureHTTPParser": false,
         "authType": "",
-        "sendsign": false,
         "x": 740,
         "y": 2500,
         "wires": [
@@ -830,6 +980,269 @@
         "x": 1370,
         "y": 2500,
         "wires": []
+    },
+    {
+        "id": "get_email_recipients",
+        "type": "http in",
+        "z": "bd6bb11c58fb203e",
+        "name": "GET /api/email-recipients",
+        "url": "/api/email-recipients",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 200,
+        "y": 2600,
+        "wires": [
+            [
+                "query_recipients"
+            ]
+        ]
+    },
+    {
+        "id": "query_recipients",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Query Recipients",
+        "func": "msg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/email_recipients?order=created_at.desc';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "libs": [],
+        "x": 460,
+        "y": 2600,
+        "wires": [
+            [
+                "http_get_recipients"
+            ]
+        ]
+    },
+    {
+        "id": "http_get_recipients",
+        "type": "http request",
+        "z": "bd6bb11c58fb203e",
+        "name": "GET Recipients",
+        "method": "GET",
+        "ret": "txt",
+        "url": "",
+        "x": 680,
+        "y": 2600,
+        "wires": [
+            [
+                "format_recipients_response"
+            ]
+        ]
+    },
+    {
+        "id": "format_recipients_response",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Format Response",
+        "func": "let data = JSON.parse(msg.payload);\nmsg.statusCode = 200;\nmsg.payload = { success: true, data: data };\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "libs": [],
+        "x": 900,
+        "y": 2600,
+        "wires": [
+            [
+                "recipients_http_response"
+            ]
+        ]
+    },
+    {
+        "id": "recipients_http_response",
+        "type": "http response",
+        "z": "bd6bb11c58fb203e",
+        "name": "Return Response",
+        "statusCode": "",
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "x": 1110,
+        "y": 2600,
+        "wires": []
+    },
+    {
+        "id": "post_email_recipient",
+        "type": "http in",
+        "z": "bd6bb11c58fb203e",
+        "name": "POST /api/email-recipients",
+        "url": "/api/email-recipients",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 210,
+        "y": 2700,
+        "wires": [
+            [
+                "validate_recipient"
+            ]
+        ]
+    },
+    {
+        "id": "validate_recipient",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Validate & Prepare",
+        "func": "const payload = msg.payload;\n\nif (!payload.email || !payload.email.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/)) {\n    msg.statusCode = 400;\n    msg.payload = { success: false, error: 'Invalid email address' };\n    return [null, msg];\n}\n\nconst newRecipient = {\n    email: payload.email,\n    name: payload.name || null,\n    is_active: payload.is_active !== false,\n    notification_types: payload.notification_types || { button: true, pir: true, pir_alert: true, voice: true }\n};\n\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/email_recipients';\nmsg.method = 'POST';\nmsg.payload = newRecipient;\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn [msg, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "libs": [],
+        "x": 480,
+        "y": 2700,
+        "wires": [
+            [
+                "http_insert_recipient"
+            ],
+            [
+                "recipients_http_response"
+            ]
+        ]
+    },
+    {
+        "id": "http_insert_recipient",
+        "type": "http request",
+        "z": "bd6bb11c58fb203e",
+        "name": "Insert Recipient",
+        "method": "POST",
+        "ret": "txt",
+        "url": "",
+        "x": 700,
+        "y": 2700,
+        "wires": [
+            [
+                "format_insert_response"
+            ]
+        ]
+    },
+    {
+        "id": "format_insert_response",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Format Insert Response",
+        "func": "let data = JSON.parse(msg.payload);\nmsg.statusCode = 201;\nmsg.payload = { success: true, data: Array.isArray(data) ? data[0] : data };\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "libs": [],
+        "x": 930,
+        "y": 2700,
+        "wires": [
+            [
+                "recipients_http_response"
+            ]
+        ]
+    },
+    {
+        "id": "delete_email_recipient",
+        "type": "http in",
+        "z": "bd6bb11c58fb203e",
+        "name": "DELETE /api/email-recipients/:id",
+        "url": "/api/email-recipients/:id",
+        "method": "delete",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 220,
+        "y": 2800,
+        "wires": [
+            [
+                "prepare_delete"
+            ]
+        ]
+    },
+    {
+        "id": "prepare_delete",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Prepare Delete",
+        "func": "const id = msg.req.params.id;\n\nif (!id) {\n    msg.statusCode = 400;\n    msg.payload = { success: false, error: 'Missing recipient ID' };\n    return [null, msg];\n}\n\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/email_recipients?id=eq.' + id;\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\n\nreturn [msg, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "libs": [],
+        "x": 470,
+        "y": 2800,
+        "wires": [
+            [
+                "http_delete_recipient"
+            ],
+            [
+                "recipients_http_response"
+            ]
+        ]
+    },
+    {
+        "id": "http_delete_recipient",
+        "type": "http request",
+        "z": "bd6bb11c58fb203e",
+        "name": "Delete Recipient",
+        "method": "DELETE",
+        "ret": "txt",
+        "url": "",
+        "x": 690,
+        "y": 2800,
+        "wires": [
+            [
+                "format_delete_response"
+            ]
+        ]
+    },
+    {
+        "id": "format_delete_response",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Format Delete Response",
+        "func": "msg.statusCode = 200;\nmsg.payload = { success: true, message: 'Recipient deleted' };\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "libs": [],
+        "x": 920,
+        "y": 2800,
+        "wires": [
+            [
+                "recipients_http_response"
+            ]
+        ]
+    },
+    {
+        "id": "options_email_recipients",
+        "type": "http in",
+        "z": "bd6bb11c58fb203e",
+        "name": "OPTIONS /api/email-recipients",
+        "url": "/api/email-recipients",
+        "method": "options",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 220,
+        "y": 2900,
+        "wires": [
+            [
+                "cors_recipients"
+            ]
+        ]
+    },
+    {
+        "id": "cors_recipients",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "CORS Headers",
+        "func": "msg.statusCode = 204;\nmsg.payload = '';\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "libs": [],
+        "x": 490,
+        "y": 2900,
+        "wires": [
+            [
+                "recipients_http_response"
+            ]
+        ]
     },
     {
         "id": "3b5ca85c7e8c82e7",
@@ -1440,9 +1853,81 @@
         "y": 160,
         "wires": [
             [
-                "insert_db_pir"
+                "insert_db_pir",
+                "email_pir_alert"
             ]
         ]
+    },
+    {
+        "id": "email_pir_alert",
+        "type": "function",
+        "z": "e38e81b07fd63314",
+        "name": "PIR Alert Email",
+        "func": "// Send email for PIR alert (burst)\nconst payload = msg.payload;\nif (!payload || !payload.event_type) return null;\n\n// Only process first message in burst to avoid spam\nif (payload.metadata && payload.metadata.burst_sequence !== 1) {\n    return null;\n}\n\nconst eventData = {\n    type: 'pir_alert',\n    image_url: payload.image_url,\n    timestamp: payload.created_at,\n    count: payload.metadata.total_burst\n};\n\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nmsg.eventData = eventData;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 200,
+        "wires": [
+            [
+                "get_dnd_alert"
+            ]
+        ]
+    },
+    {
+        "id": "get_dnd_alert",
+        "type": "http request",
+        "z": "e38e81b07fd63314",
+        "name": "Check DND",
+        "method": "GET",
+        "ret": "txt",
+        "url": "",
+        "x": 840,
+        "y": 200,
+        "wires": [
+            [
+                "send_alert_email"
+            ]
+        ]
+    },
+    {
+        "id": "send_alert_email",
+        "type": "function",
+        "z": "e38e81b07fd63314",
+        "name": "Send Alert Email",
+        "func": "let settings = JSON.parse(msg.payload);\nif (Array.isArray(settings)) settings = settings[0];\n\nif (settings.do_not_disturb === true) return null;\n\nconst axios = global.get('axios') || require('axios');\nconst recipients = await axios.get(\n    'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/email_recipients?is_active=eq.true&notification_types->>pir_alert=eq.true',\n    { headers: { 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8' } }\n);\n\nconst e = msg.eventData;\nconst messages = [];\n\nfor (const r of recipients.data) {\n    messages.push({\n        to: r.email,\n        topic: '⚠️ High Motion Alert',\n        payload: `<h2 style=\"color: #dc2626;\">⚠️ High Motion Alert - Burst Detected</h2><p>Multiple rapid movements detected (${e.count} images captured)</p><p><strong>Time:</strong> ${new Date(e.timestamp).toLocaleString('vi-VN')}</p>${e.image_url ? `<img src=\"${e.image_url}\" style=\"max-width: 600px; border-radius: 8px;\"/>` : ''}<p style=\"color: #6b7280; font-size: 12px;\">ESP32 Smart Doorbell</p>`,\n        from: 'ESP32 Doorbell <khoa199939@gmail.com>'\n    });\n}\n\nreturn [messages];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "libs": [],
+        "x": 1050,
+        "y": 200,
+        "wires": [
+            [
+                "email_out_alert"
+            ]
+        ]
+    },
+    {
+        "id": "email_out_alert",
+        "type": "e-mail",
+        "z": "e38e81b07fd63314",
+        "server": "smtp.gmail.com",
+        "port": "587",
+        "authtype": "BASIC",
+        "saslformat": false,
+        "token": "oauth2Response.access_token",
+        "secure": false,
+        "tls": false,
+        "name": "",
+        "dname": "Send Alert Email",
+        "x": 1270,
+        "y": 200,
+        "wires": []
     },
     {
         "id": "insert_db_pir",
@@ -1515,9 +2000,87 @@
         "y": 380,
         "wires": [
             [
-                "insert_motion_log"
+                "insert_motion_log",
+                "email_pir_motion"
             ]
         ]
+    },
+    {
+        "id": "email_pir_motion",
+        "type": "function",
+        "z": "e38e81b07fd63314",
+        "name": "PIR Email Flow",
+        "func": "// Check DND, get recipients, send emails for PIR motion\nconst eventData = {\n    type: 'pir',\n    description: msg.payload.description || 'Motion detected',\n    timestamp: msg.payload.created_at,\n    level: msg.payload.metadata.level\n};\n\nflow.set('pir_event_' + Date.now(), eventData);\n\n// Get settings\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nmsg.eventData = eventData;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 640,
+        "y": 420,
+        "wires": [
+            [
+                "get_dnd_pir"
+            ]
+        ]
+    },
+    {
+        "id": "get_dnd_pir",
+        "type": "http request",
+        "z": "e38e81b07fd63314",
+        "name": "Check DND",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "x": 840,
+        "y": 420,
+        "wires": [
+            [
+                "filter_send_pir"
+            ]
+        ]
+    },
+    {
+        "id": "filter_send_pir",
+        "type": "function",
+        "z": "e38e81b07fd63314",
+        "name": "Filter & Send PIR",
+        "func": "let settings = JSON.parse(msg.payload);\nif (Array.isArray(settings)) settings = settings[0];\n\nif (settings.do_not_disturb === true) {\n    return null;\n}\n\n// Get recipients\nconst axios = global.get('axios') || require('axios');\nconst recipients = await axios.get(\n    'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/email_recipients?is_active=eq.true&notification_types->>pir=eq.true',\n    {\n        headers: {\n            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n        }\n    }\n);\n\nconst eventData = msg.eventData;\nconst messages = [];\n\nfor (const r of recipients.data) {\n    messages.push({\n        to: r.email,\n        topic: '👤 Motion Detected',\n        payload: `<h2>👤 Motion Detected</h2><p>${eventData.description}</p><p><strong>Time:</strong> ${new Date(eventData.timestamp).toLocaleString('vi-VN')}</p><p style=\"color: #6b7280; font-size: 12px;\">ESP32 Smart Doorbell</p>`,\n        from: 'ESP32 Doorbell <khoa199939@gmail.com>'\n    });\n}\n\nreturn [messages];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1060,
+        "y": 420,
+        "wires": [
+            [
+                "email_out_pir"
+            ]
+        ]
+    },
+    {
+        "id": "email_out_pir",
+        "type": "e-mail",
+        "z": "e38e81b07fd63314",
+        "server": "smtp.gmail.com",
+        "port": "587",
+        "authtype": "BASIC",
+        "saslformat": false,
+        "token": "oauth2Response.access_token",
+        "secure": false,
+        "tls": false,
+        "name": "",
+        "dname": "Send PIR Email",
+        "x": 1270,
+        "y": 420,
+        "wires": []
     },
     {
         "id": "insert_motion_log",
@@ -1576,7 +2139,7 @@
         "type": "function",
         "z": "0f2c315966152f10",
         "name": "Prepare Voice Insert",
-        "func": "const payload = msg.payload;\n\nif (!payload.audio_url || !payload.timestamp) {\n    node.warn('Invalid voice note payload');\n    return null;\n}\n\n// Convert duration_ms to duration_seconds (must be INTEGER for database)\nlet durationSeconds = 1; // Default to 1 second minimum\nif (payload.duration_seconds) {\n    durationSeconds = Math.ceil(payload.duration_seconds);\n} else if (payload.duration_ms) {\n    // Round up: 608ms -> 1s, 1200ms -> 2s\n    durationSeconds = Math.ceil(payload.duration_ms / 1000);\n}\n\nmsg.payload = {\n    audio_url: payload.audio_url,\n    duration_seconds: durationSeconds,\n    created_at: new Date(payload.timestamp * 1000).toISOString(),\n    metadata: {\n        source: 'doorbell_microphone',\n        device_id: payload.device_id || 'ESP32_DOORBELL',\n        description: 'Khách để lại lời nhắn',\n        raw_timestamp: payload.timestamp,\n        duration_ms: payload.duration_ms\n    }\n};\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nnode.warn('📝 Voice Note Insert: ' + JSON.stringify(msg.payload));\nreturn msg;",
+        "func": "const payload = msg.payload;\n\nif (!payload.audio_url || !payload.timestamp) {\n    node.warn('Invalid voice note payload');\n    return null;\n}\n\n// Convert duration_ms to duration_seconds (must be INTEGER for database)\nlet durationSeconds = 1; // Default to 1 second minimum\nif (payload.duration_seconds) {\n    durationSeconds = Math.ceil(payload.duration_seconds);\n} else if (payload.duration_ms) {\n    // Round up: 608ms -> 1s, 1200ms -> 2s\n    durationSeconds = Math.ceil(payload.duration_ms / 1000);\n}\n\nmsg.payload = {\n    audio_url: payload.audio_url,\n    duration_seconds: durationSeconds,\n    created_at: new Date(payload.timestamp * 1000).toISOString(),\n    metadata: {\n        source: 'doorbell_microphone',\n        device_id: payload.device_id || 'ESP32_DOORBELL',\n        description: 'Khách để lại lời nhắn',\n        raw_timestamp: payload.timestamp,\n        duration_ms: payload.duration_ms\n    }\n};\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nnode.warn('📝 Voice Note Insert: ' + JSON.stringify(msg.payload));\n\n// Store event data for email\nmsg.eventData = {\n    audio_url: msg.payload.audio_url,\n    duration_seconds: msg.payload.duration_seconds,\n    created_at: msg.payload.created_at\n};\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -1629,7 +2192,82 @@
         "libs": [],
         "x": 840,
         "y": 120,
-        "wires": [[]]
+        "wires": [
+            [
+                "email_voice_note"
+            ]
+        ]
+    },
+    {
+        "id": "email_voice_note",
+        "type": "function",
+        "z": "0f2c315966152f10",
+        "name": "Voice Email Flow",
+        "func": "// Only send email on success\nif (msg.statusCode !== 201 && msg.statusCode !== 200) {\n    return null;\n}\n\nconst voiceData = msg.eventData || {};\nconst eventData = {\n    type: 'voice',\n    audio_url: voiceData.audio_url,\n    duration: voiceData.duration_seconds,\n    timestamp: voiceData.created_at\n};\n\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nmsg.eventData = eventData;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1070,
+        "y": 120,
+        "wires": [
+            [
+                "get_dnd_voice"
+            ]
+        ]
+    },
+    {
+        "id": "get_dnd_voice",
+        "type": "http request",
+        "z": "0f2c315966152f10",
+        "name": "Check DND",
+        "method": "GET",
+        "ret": "txt",
+        "url": "",
+        "x": 1270,
+        "y": 120,
+        "wires": [
+            [
+                "send_voice_email"
+            ]
+        ]
+    },
+    {
+        "id": "send_voice_email",
+        "type": "function",
+        "z": "0f2c315966152f10",
+        "name": "Send Voice Email",
+        "func": "let settings = JSON.parse(msg.payload);\nif (Array.isArray(settings)) settings = settings[0];\n\nif (settings.do_not_disturb === true) return null;\n\nconst axios = global.get('axios') || require('axios');\nconst recipients = await axios.get(\n    'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/email_recipients?is_active=eq.true&notification_types->>voice=eq.true',\n    { headers: { 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8' } }\n);\n\nconst e = msg.eventData;\nconst messages = [];\n\nfor (const r of recipients.data) {\n    messages.push({\n        to: r.email,\n        topic: '🎤 New Voice Message',\n        payload: `<h2 style=\"color: #7c3aed;\">🎤 New Voice Message Received</h2><p>Someone left a voice message at your doorbell.</p><p><strong>Time:</strong> ${new Date(e.timestamp).toLocaleString('vi-VN')}</p><p><strong>Duration:</strong> ${e.duration} seconds</p><p><a href=\"${e.audio_url}\" style=\"background: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px;\">🎧 Listen to Voice Message</a></p><p style=\"color: #6b7280; font-size: 12px; margin-top: 20px;\">ESP32 Smart Doorbell</p>`,\n        from: 'ESP32 Doorbell <khoa199939@gmail.com>'\n    });\n}\n\nreturn [messages];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "libs": [],
+        "x": 1480,
+        "y": 120,
+        "wires": [
+            [
+                "email_out_voice"
+            ]
+        ]
+    },
+    {
+        "id": "email_out_voice",
+        "type": "e-mail",
+        "z": "0f2c315966152f10",
+        "server": "smtp.gmail.com",
+        "port": "587",
+        "authtype": "BASIC",
+        "saslformat": false,
+        "token": "oauth2Response.access_token",
+        "secure": false,
+        "tls": false,
+        "name": "",
+        "dname": "Send Voice Email",
+        "x": 1700,
+        "y": 120,
+        "wires": []
     },
     {
         "id": "debug_voice",

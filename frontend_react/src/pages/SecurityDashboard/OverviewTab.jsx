@@ -6,6 +6,7 @@ import CameraLive from '../../components/Overview/CameraLive';
 import AudioControl from '../../components/Overview/AudioControl';
 import AlarmControl from '../../components/Overview/AlarmControl';
 import AudioMessageControl from '../../components/Overview/AudioMessageControl';
+import EmailRecipients from '../../components/Overview/EmailRecipients';
 
 function OverviewTab({
   notificationEnabled,
@@ -59,6 +60,8 @@ function OverviewTab({
       <AudioMessageControl 
         onSendAudioMessage={onSendAudioMessage}
       />
+      
+      <EmailRecipients />
     </div>
   );
 }

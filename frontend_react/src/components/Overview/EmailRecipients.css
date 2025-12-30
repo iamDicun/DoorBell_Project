@@ -1,0 +1,255 @@
+.email-recipients {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.email-recipients-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.email-recipients-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #fff;
+  font-weight: 600;
+}
+
+.btn-add-recipient {
+  background: transparent;
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.btn-add-recipient:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.add-recipient-form {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+}
+
+.form-group input[type="email"],
+.form-group input[type="text"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 14px;
+  transition: border-color 0.2s;
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.notification-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.2s;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.checkbox-label:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.checkbox-label input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.btn-submit {
+  background: transparent;
+  color: #fff;
+  border: 2px solid #fff;
+  padding: 10px 24px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.btn-submit:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.recipients-list {
+  margin-top: 24px;
+}
+
+.no-recipients {
+  text-align: center;
+  padding: 48px 24px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.no-recipients p {
+  margin: 8px 0;
+}
+
+.no-recipients .hint {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.recipients-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.recipients-table thead {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.recipients-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #fff;
+  font-size: 14px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.recipients-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.recipients-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.email-cell {
+  font-family: monospace;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.notifications-cell {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.status-badge.inactive {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.btn-delete {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px 8px;
+  transition: all 0.2s;
+}
+
+.btn-delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: scale(1.1);
+}
+
+.alert {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.alert-error {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.alert-success {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.email-recipients-loading {
+  text-align: center;
+  padding: 48px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 768px) {
+  .email-recipients-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .notification-checkboxes {
+    grid-template-columns: 1fr;
+  }
+
+  .recipients-table {
+    font-size: 14px;
+  }
+
+  .recipients-table th,
+  .recipients-table td {
+    padding: 8px;
+  }
+}

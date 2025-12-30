@@ -102,4 +102,20 @@ export const updateQuickResponse = async (title, audioUrl) => {
   return response.data;
 };
 
+// Email Recipients API
+export const getEmailRecipients = async () => {
+  const response = await api.get('/email-recipients');
+  return response.data;
+};
+
+export const addEmailRecipient = async (recipient) => {
+  const response = await api.post('/email-recipients', recipient);
+  return response.data;
+};
+
+export const deleteEmailRecipient = async (id) => {
+  const response = await api.delete(`/email-recipients/${id}`);
+  return response.data;
+};
+
 export default api;
