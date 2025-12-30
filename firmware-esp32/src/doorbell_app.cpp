@@ -192,11 +192,20 @@ void doorbellLoop() {
     PIRAlertLevel alertLevel = checkPIRAlertLevel();
     handlePIRAlert(alertLevel);
     
+    // === Alarm Timer ===
+    handleAlarmTimer();
+    
     // === Temperature Reading (every 5 minutes) ===
     if (now - lastTempRead >= TEMP_READ_INTERVAL_MS) {
         lastTempRead = now;
-        Serial.println("\n[TEMP] Reading environment temperature...");
-        readEnvironmentTemperature();
+        
+        // Check if temperature sensor is enabled in settings
+        if (getDeviceSettings().temp_enabled) {
+            Serial.println("\n[TEMP] Reading environment temperature...");
+            readEnvironmentTemperature();
+        } else {
+            Serial.println("\n[TEMP] Skipping temperature read (disabled in settings)");
+        }
     }
     
     delay(5);

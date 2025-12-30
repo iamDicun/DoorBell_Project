@@ -3,7 +3,10 @@
 #include "AudioFileSourcePROGMEM.h"
 #include "AudioFileSourceHTTPStream.h"
 #include "AudioGeneratorMP3.h"
+#include "AudioGeneratorWAV.h"
 #include "AudioOutputI2S.h"
+#include <WiFiClientSecure.h>
+#include <HTTPClient.h>
 
 // --- Global Variables ---
 volatile bool isRecording = false;
@@ -373,6 +376,13 @@ void mp3PlayTask(void* param) {
     vTaskDelete(NULL);
 }
 
+void stopPlayback() {
+    if (isPlaying) {
+        Serial.println("[AUDIO] Stopping playback...");
+        isPlaying = false;
+    }
+}
+
 void playUploadedAudio() {
     if (isRecording || isPlaying) {
         Serial.println("Cannot play: busy");
@@ -401,32 +411,152 @@ void playUrlTask(void* param) {
     i2s_driver_uninstall(SPK_I2S_PORT);
     spkInitialized = false;
     
-    AudioFileSourceHTTPStream *source = new AudioFileSourceHTTPStream(playUrlBuffer);
+    // --- Step 1: Download to PSRAM ---
+    Serial.println("Downloading audio to PSRAM...");
+    
+    WiFiClientSecure *client = new WiFiClientSecure();
+    if(client) {
+        client->setInsecure();
+    } else {
+        Serial.println("Failed to create WiFiClientSecure");
+        vTaskDelete(NULL);
+        return;
+    }
+
+    HTTPClient http;
+    
+    // Begin connection
+    if (!http.begin(*client, playUrlBuffer)) {
+        Serial.println("HTTP begin failed");
+        delete client;
+        vTaskDelete(NULL);
+        return;
+    }
+
+    int httpCode = http.GET();
+    uint8_t *audioBuffer = nullptr;
+    size_t audioSize = 0;
+
+    if (httpCode > 0) {
+        if (httpCode == HTTP_CODE_OK) {
+            audioSize = http.getSize();
+            Serial.printf("File size: %d bytes\n", audioSize);
+
+            if (audioSize > 0) {
+                // Allocate in PSRAM
+                audioBuffer = (uint8_t*)ps_malloc(audioSize);
+                if (audioBuffer) {
+                    // Download stream
+                    WiFiClient *stream = http.getStreamPtr();
+                    size_t bytesRead = 0;
+                    unsigned long startTime = millis();
+                    
+                    int lastPercent = -1;
+                    while (http.connected() && (bytesRead < audioSize) && (millis() - startTime < 30000)) {
+                        size_t available = stream->available();
+                        if (available) {
+                            int c = stream->readBytes(audioBuffer + bytesRead, available);
+                            bytesRead += c;
+                            
+                            int percent = (int)((bytesRead * 100) / audioSize);
+                            if (percent != lastPercent && percent % 10 == 0) {
+                                Serial.printf("Downloading: %d%%\n", percent);
+                                lastPercent = percent;
+                            }
+                            
+                            startTime = millis(); // Reset timeout on data
+                        }
+                        delay(1);
+                    }
+                    Serial.printf("Downloaded %d bytes\n", bytesRead);
+                    
+                    if (bytesRead < audioSize) {
+                        Serial.println("Download incomplete!");
+                        free(audioBuffer);
+                        audioBuffer = nullptr;
+                    }
+                } else {
+                    Serial.println("PSRAM allocation failed!");
+                }
+            }
+        } else {
+            Serial.printf("HTTP GET failed, error: %s\n", http.errorToString(httpCode).c_str());
+        }
+    } else {
+        Serial.printf("HTTP GET failed, error: %s\n", http.errorToString(httpCode).c_str());
+    }
+
+    http.end();
+    delete client;
+
+    if (!audioBuffer) {
+        Serial.println("Download failed, cannot play.");
+        isPlaying = false;
+        initSpeaker(); // Restore speaker state
+        vTaskDelete(NULL);
+        return;
+    }
+
+    // --- Step 2: Play from Memory ---
+    Serial.println("Starting playback from RAM...");
+    
+    AudioFileSourcePROGMEM *source = new AudioFileSourcePROGMEM(audioBuffer, audioSize);
     AudioOutputI2S *output = new AudioOutputI2S(1, AudioOutputI2S::EXTERNAL_I2S);
     output->SetPinout(SPK_BCK_PIN, SPK_WS_PIN, SPK_DATA_PIN);
     output->SetGain(speakerVolume);
     output->SetOutputModeMono(true);
     activeAudioOutput = output;
     
-    AudioGeneratorMP3 *mp3 = new AudioGeneratorMP3();
+    AudioGenerator *generator = nullptr;
     
-    if (mp3->begin(source, output)) {
-        Serial.println("URL MP3 decoding started");
-        while (mp3->isRunning() && isPlaying) {
-            if (!mp3->loop()) {
-                mp3->stop();
+    // Check file signature (Magic Bytes)
+    bool isWav = false;
+    if (audioSize >= 12) {
+        if (memcmp(audioBuffer, "RIFF", 4) == 0 && memcmp(audioBuffer + 8, "WAVE", 4) == 0) {
+            isWav = true;
+        }
+    }
+    
+    if (isWav) {
+        Serial.println("Detected WAV format (header)");
+        generator = new AudioGeneratorWAV();
+    } else {
+        // Fallback to extension check
+        String urlStr = String(playUrlBuffer);
+        urlStr.toLowerCase();
+        if (urlStr.indexOf(".wav") != -1) { // Check if .wav is anywhere in URL (e.g. before query params)
+             Serial.println("Detected WAV format (extension)");
+             generator = new AudioGeneratorWAV();
+        } else {
+             Serial.println("Assuming MP3 format");
+             generator = new AudioGeneratorMP3();
+        }
+    }
+    
+    if (generator && generator->begin(source, output)) {
+        Serial.println("Audio decoding started");
+        while (generator->isRunning() && isPlaying) {
+            if (!generator->loop()) {
+                generator->stop();
                 break;
             }
             vTaskDelay(1);
         }
     } else {
-        Serial.println("URL MP3 begin failed!");
+        Serial.println("Audio begin failed!");
     }
     
-    delete mp3;
+    Serial.println("Cleaning up audio objects...");
+    if (generator) delete generator;
     activeAudioOutput = nullptr;
-    delete output;
-    delete source;
+    if (output) delete output;
+    if (source) delete source;
+    
+    // Free PSRAM buffer
+    if (audioBuffer) {
+        free(audioBuffer);
+        Serial.println("Freed PSRAM buffer");
+    }
     
     initSpeaker();
     isPlaying = false;
@@ -447,7 +577,8 @@ void playUrl(const char* url) {
     delay(50);
     
     isPlaying = true;
-    xTaskCreatePinnedToCore(playUrlTask, "UrlTask", 16384, NULL, 2, NULL, 1);
+    // Increase stack size to 32KB (32 * 1024) for HTTPS
+    xTaskCreatePinnedToCore(playUrlTask, "UrlTask", 32768, NULL, 2, NULL, 1);
 }
 
 // --- Web to Speaker Streaming ---
@@ -555,4 +686,33 @@ void playTestTone() {
     i2s_zero_dma_buffer(SPK_I2S_PORT);
     isPlaying = false;
     Serial.println("Mario melody complete!");
+}
+
+// Sound indicators for voice recording (gentle, not loud)
+void playRecordingStartTone() {
+    if (isPlaying || isRecording) return;
+    
+    // Middle frequency: 800Hz beep (gentle)
+    Serial.println("[AUDIO] Recording start tone");
+    playTone(800, 100); // 800Hz, 100ms
+}
+
+void playRecordingSuccessTone() {
+    if (isPlaying || isRecording) return;
+    
+    // High frequency double beep: success sound
+    Serial.println("[AUDIO] Recording success tone");
+    playTone(1200, 80);  // 1200Hz, 80ms
+    delay(50);
+    playTone(1400, 120); // 1400Hz, 120ms (higher and longer)
+}
+
+void playRecordingErrorTone() {
+    if (isPlaying || isRecording) return;
+    
+    // Low frequency: error sound
+    Serial.println("[AUDIO] Recording error tone");
+    playTone(400, 200);  // 400Hz, 200ms (low and longer)
+    delay(100);
+    playTone(350, 150);  // 350Hz, 150ms (even lower)
 }

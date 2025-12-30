@@ -3,6 +3,7 @@ import { Mic, Send, Upload } from 'lucide-react';
 import './AudioMessageControl.css';
 import { getQuickResponses, updateQuickResponse, sendAudioMessage } from '../../lib/api';
 import { uploadAudio } from '../../lib/supabase';
+import { convertWebMToWav } from '../../lib/audioConverter';
 
 function AudioMessageControl({ onSendAudioMessage }) {
   const [quickResponses, setQuickResponses] = useState([]);
@@ -50,10 +51,19 @@ function AudioMessageControl({ onSendAudioMessage }) {
         audioChunksRef.current.push(event.data);
       };
 
-      mediaRecorderRef.current.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        setRecordedAudio({ blob: audioBlob, url: audioUrl });
+      mediaRecorderRef.current.onstop = async () => {
+        const webmBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        
+        try {
+          // Convert WebM (Opus) to true WAV (PCM)
+          const wavBlob = await convertWebMToWav(webmBlob);
+          const audioUrl = URL.createObjectURL(wavBlob);
+          setRecordedAudio({ blob: wavBlob, url: audioUrl });
+        } catch (error) {
+          console.error('Audio conversion failed:', error);
+          alert('Lỗi xử lý âm thanh! Vui lòng thử lại.');
+        }
+        
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -118,17 +128,24 @@ function AudioMessageControl({ onSendAudioMessage }) {
 
     try {
       setLoading(true);
+      console.log('🎵 [AudioControl] Sending message:', selectedMessage.title);
+      console.log('🎵 [AudioControl] Audio URL:', selectedMessage.audio_url);
+      
       const response = await sendAudioMessage(selectedMessage.audio_url, 80);
+      console.log('🎵 [AudioControl] Response:', response);
       
       if (response.success) {
         alert('Đã gửi tin nhắn audio đến chuông cửa!');
         if (onSendAudioMessage) {
           onSendAudioMessage('predefined', selectedMessage);
         }
+      } else {
+        console.error('🎵 [AudioControl] Response not successful:', response);
+        alert('Lỗi: ' + (response.error || 'Unknown error'));
       }
     } catch (error) {
-      console.error('Error sending audio:', error);
-      alert('Không thể gửi tin nhắn audio!');
+      console.error('❌ [AudioControl] Error sending audio:', error);
+      alert('Không thể gửi tin nhắn audio: ' + error.message);
     } finally {
       setLoading(false);
     }

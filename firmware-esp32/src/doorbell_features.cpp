@@ -9,6 +9,8 @@
 
 // --- Global State Variables ---
 static bool isAlarmActive = false;
+static unsigned long alarmStartTime = 0;
+static unsigned long alarmDuration = 0;
 static bool isTwoWayAudioActive = false;
 static bool isRecordingVoiceNote = false;
 
@@ -170,8 +172,12 @@ void startVoiceNoteRecording() {
     if (isRecordingVoiceNote) return;
     
     Serial.println("[FEATURE] Starting voice note recording");
-    isRecordingVoiceNote = true;
     
+    // Play start tone (middle frequency)
+    playRecordingStartTone();
+    delay(150); // Wait for tone to finish
+    
+    isRecordingVoiceNote = true;
     startRecording();
 }
 
@@ -232,6 +238,9 @@ void stopVoiceNoteRecording() {
             if (uploaded) {
                 Serial.println("[FEATURE] Voice note uploaded successfully");
                 
+                // Play success tone (high frequency)
+                playRecordingSuccessTone();
+                
                 // Flow 3: Get URL from upload response and publish to TOPIC_EVT_VOICE
                 const char* audioUrl = getLastUploadedUrl();
                 if (audioUrl && strlen(audioUrl) > 0) {
@@ -245,6 +254,9 @@ void stopVoiceNoteRecording() {
                 }
             } else {
                 Serial.println("[FEATURE] Voice note upload failed");
+                
+                // Play error tone (low frequency)
+                playRecordingErrorTone();
             }
         }
     }
@@ -408,10 +420,25 @@ void captureSecurityBurst() {
     }
 }
 
-void activateAlarm() {
+void activateAlarm(int durationSeconds) {
     if (isAlarmActive) return;
     
+    // Check if alarm is enabled in settings
+    if (!getDeviceSettings().alarm_enabled) {
+        Serial.println("[FEATURE] Alarm trigger ignored (disabled in settings)");
+        return;
+    }
+    
     Serial.println("[FEATURE] Activating alarm");
+    
+    if (durationSeconds > 0) {
+        Serial.printf("[FEATURE] Auto-off timer set for %d seconds\n", durationSeconds);
+        alarmDuration = durationSeconds * 1000;
+        alarmStartTime = millis();
+    } else {
+        alarmDuration = 0;
+    }
+    
     isAlarmActive = true;
     
     // Play alarm sound from SPIFFS
@@ -424,7 +451,19 @@ void deactivateAlarm() {
     
     Serial.println("[FEATURE] Deactivating alarm");
     isAlarmActive = false;
-    // No MQTT needed - alarm state is local
+    alarmDuration = 0;
+    
+    // Stop audio if playing
+    stopPlayback();
+}
+
+void handleAlarmTimer() {
+    if (isAlarmActive && alarmDuration > 0) {
+        if (millis() - alarmStartTime >= alarmDuration) {
+            Serial.println("[FEATURE] Alarm auto-off timer expired");
+            deactivateAlarm();
+        }
+    }
 }
 
 // --- Audio & Speaker Features ---

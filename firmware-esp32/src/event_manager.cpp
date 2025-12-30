@@ -149,33 +149,45 @@ void eventManagerLoop() {
     lastButtonState = currentState;
 
     // PIR motion detection - state tracking only (alert handling in doorbell_app.cpp)
-    int pirRawValue = digitalRead(PIR_PIN);
-    bool pir = (pirRawValue == HIGH);
-    
-    // Debug: Print raw PIR value every 1000 reads
-    static unsigned long pirReadCount = 0;
-    pirReadCount++;
-    if (pirReadCount % 1000 == 0) {
-        Serial.printf("[PIR-DEBUG] Read#%lu | PIN=%d | Raw=%d | State=%s\n",
-                     pirReadCount, PIR_PIN, pirRawValue, pirState ? "HIGH" : "LOW");
-    }
-    
-    if (pir && !pirState) {
-        pirState = true;
-        Serial.printf("\n[EVT-PIR] *** MOTION DETECTED *** (Raw pin value: %d)\n", pirRawValue);
-        // Register detection for alert level aggregation
-        extern void registerPIRDetection(unsigned long timestamp);
-        registerPIRDetection(millis());
-    } else if (!pir && pirState) {
-        pirState = false;
-        Serial.printf("[EVT-PIR] Motion cleared (Raw pin value: %d)\n\n", pirRawValue);
+    // Check if PIR is enabled in settings
+    if (getDeviceSettings().pir_enabled) {
+        int pirRawValue = digitalRead(PIR_PIN);
+        bool pir = (pirRawValue == HIGH);
+        
+        // Debug: Print raw PIR value every 1000 reads
+        static unsigned long pirReadCount = 0;
+        pirReadCount++;
+        if (pirReadCount % 1000 == 0) {
+            Serial.printf("[PIR-DEBUG] Read#%lu | PIN=%d | Raw=%d | State=%s\n",
+                        pirReadCount, PIR_PIN, pirRawValue, pirState ? "HIGH" : "LOW");
+        }
+        
+        if (pir && !pirState) {
+            pirState = true;
+            Serial.printf("\n[EVT-PIR] *** MOTION DETECTED *** (Raw pin value: %d)\n", pirRawValue);
+            // Register detection for alert level aggregation
+            extern void registerPIRDetection(unsigned long timestamp);
+            registerPIRDetection(millis());
+        } else if (!pir && pirState) {
+            pirState = false;
+            Serial.printf("[EVT-PIR] Motion cleared (Raw pin value: %d)\n\n", pirRawValue);
+        }
+    } else {
+        // If PIR disabled, ensure state is cleared
+        if (pirState) {
+            pirState = false;
+            Serial.println("[EVT-PIR] PIR disabled by setting - clearing state");
+        }
     }
 
     // Send telemetry data every 60 seconds
     if (millis() - lastTelemetryTime > 60000) {
         lastTelemetryTime = millis();
         
-        float temperature = readTemperatureCelsius();
+        float temperature = 0.0f;
+        if (getDeviceSettings().temp_enabled) {
+            temperature = readTemperatureCelsius();
+        }
         
         // Create telemetry JSON
         char telemetryMsg[128];

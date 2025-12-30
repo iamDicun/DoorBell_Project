@@ -43,18 +43,20 @@ function SecurityDashboard() {
         const response = await axios.get('http://localhost:1880/api/settings');
         console.log('[Settings] API Response:', response.data);
         
-        if (response.data.success && response.data.data && response.data.data.length > 0) {
-          const settings = response.data.data[0];
+        if (response.data.success && response.data.data) {
+          const settings = response.data.data;
           
           // Update UI state from database
           setIsAlarmActive(settings.alarm_enabled || false);
           setVolume(settings.speaker_volume || 70);
           setNotificationEnabled(settings.do_not_disturb || false);
           
-          // Update sensors state (PIR enabled)
+          // Update sensors state (PIR and Temperature enabled)
           setSensors(prevSensors => prevSensors.map(s => {
             if (s.type === 'motion') {
               return { ...s, enabled: settings.pir_enabled !== false };
+            } else if (s.type === 'temperature') {
+              return { ...s, enabled: settings.temp_enabled !== false };
             }
             return s;
           }));
@@ -334,9 +336,11 @@ function SecurityDashboard() {
     // Update UI immediately
     setSensors(sensors.map(s => s.id === id ? {...s, enabled: newEnabled} : s));
     
-    // Save to database if it's PIR sensor
+    // Save to database based on sensor type
     if (sensor.type === 'motion') {
       await updateSettings({ pir_enabled: newEnabled });
+    } else if (sensor.type === 'temperature') {
+      await updateSettings({ temp_enabled: newEnabled });
     }
   };
 

@@ -10,6 +10,7 @@ struct DeviceSettings {
     bool pir_enabled;
     bool notifications_enabled;
     bool alarm_auto_play;
+    bool temp_enabled;         // Temperature sensor enabled
 };
 
 // Get current device settings
@@ -20,6 +21,7 @@ void mqttServiceLoop();
 bool mqttReconnect();
 void mqttPublishJson(const char* topic, const char* payload);
 void mqttHandleCommandPayload(const char* jsonPayload);
+void mqttHandleSpeakCommand(const char* jsonPayload);
 
 // Helper functions for metadata
 unsigned long getTimestamp();

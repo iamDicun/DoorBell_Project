@@ -4,7 +4,6 @@
 #include <HTTPClient.h>
 #include "config.h"
 
-static WiFiClientSecure uploadSecureClient;
 static String lastUploadedUrl = "";
 
 const char* getLastUploadedUrl() {
@@ -21,15 +20,55 @@ bool uploadToSupabase(const uint8_t* data, size_t len, const char* bucket, const
         return false;
     }
     
+    // Test DNS resolution before attempting upload
+    IPAddress supabaseIP;
+    const char* hostname = "xznnnklhqkccylxxzsdh.supabase.co";
+    Serial.printf("[SUPABASE] Testing DNS resolution for %s...\n", hostname);
+    
+    if (!WiFi.hostByName(hostname, supabaseIP)) {
+        Serial.println("[SUPABASE] ✗ DNS resolution FAILED!");
+        Serial.println("[SUPABASE] Possible solutions:");
+        Serial.println("  1. Check DNS server configuration");
+        Serial.println("  2. Verify internet connectivity");
+        Serial.println("  3. Check if hostname is correct");
+        Serial.printf("[SUPABASE] Current DNS: %s\n", WiFi.dnsIP().toString().c_str());
+        return false;
+    }
+    
+    Serial.printf("[SUPABASE] ✓ DNS resolved to: %s\n", supabaseIP.toString().c_str());
+    
     // Build Supabase Storage API URL
     String url = String(SUPABASE_URL) + "/storage/v1/object/" + bucket + "/" + filename;
     Serial.printf("[SUPABASE] Uploading to: %s (%u bytes)\n", url.c_str(), (unsigned)len);
     
-    HTTPClient http;
-    uploadSecureClient.setInsecure(); // Skip certificate validation
+    // Small delay to allow DNS to settle
+    delay(100);
     
-    if (!http.begin(uploadSecureClient, url)) {
-        Serial.println("[SUPABASE] Failed to begin HTTP connection");
+    // Create new WiFiClientSecure for each request to avoid DNS cache issues
+    WiFiClientSecure* uploadSecureClient = new WiFiClientSecure();
+    uploadSecureClient->setInsecure(); // Skip certificate validation
+    uploadSecureClient->setTimeout(30); // 30 second timeout
+    
+    Serial.println("[SUPABASE] Connecting to server...");
+    
+    HTTPClient http;
+    
+    // Try to begin connection with retry
+    bool connected = false;
+    for (int i = 0; i < 3; i++) {
+        if (http.begin(*uploadSecureClient, url)) {
+            connected = true;
+            Serial.println("[SUPABASE] ✓ HTTP connection established");
+            break;
+        }
+        Serial.printf("[SUPABASE] Connection attempt %d failed, retrying...\n", i + 1);
+        delay(1000);
+    }
+    
+    if (!connected) {
+        Serial.println("[SUPABASE] Failed to begin HTTP connection after 3 attempts");
+        uploadSecureClient->stop();
+        delete uploadSecureClient;
         return false;
     }
     
@@ -67,6 +106,9 @@ bool uploadToSupabase(const uint8_t* data, size_t len, const char* bucket, const
     }
     
     http.end();
+    uploadSecureClient->stop();
+    delay(100); // Allow cleanup
+    delete uploadSecureClient;
     return success;
 }
 
@@ -81,11 +123,19 @@ bool uploadClientPost(const char* endpoint, const uint8_t* data, size_t len, con
     String url = String(BACKEND_BASE_URL) + endpoint;
     Serial.printf("[UPLOAD] POST %s (%u bytes, %s)\n", url.c_str(), (unsigned)len, contentType);
     
-    HTTPClient http;
-    uploadSecureClient.setInsecure(); // For production, use CA cert
+    // Create new WiFiClientSecure for each request
+    WiFiClientSecure* client = new WiFiClientSecure();
+    client->setInsecure(); // Skip certificate validation
+    client->setTimeout(30); // 30 second timeout
     
-    if (!http.begin(uploadSecureClient, url)) {
+    delay(100); // Allow WiFi to stabilize
+    
+    HTTPClient http;
+    
+    if (!http.begin(*client, url)) {
         Serial.println("[UPLOAD] HTTP begin failed");
+        client->stop();
+        delete client;
         return false;
     }
     
@@ -136,6 +186,9 @@ bool uploadClientPost(const char* endpoint, const uint8_t* data, size_t len, con
     }
     
     http.end();
+    client->stop();
+    delay(100); // Allow cleanup
+    delete client;
     
     // Store URL for caller to retrieve
     if (success && uploadedUrl.length() > 0) {

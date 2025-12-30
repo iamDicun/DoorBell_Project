@@ -313,7 +313,7 @@
         "type": "function",
         "z": "bd6bb11c58fb203e",
         "name": "Validate & Prepare",
-        "func": "// Node: Function - Validate Speak Command\nconst payload = msg.payload;\n\n// Validation\nif (!payload.audio_url) {\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Validation failed\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"audio_url\",\n            message: \"audio_url is required\"\n        }\n    };\n    return [null, msg]; // Send to error output\n}\n\n// Validate volume\nconst volume = payload.volume || 80;\nif (volume < 0 || volume > 100) {\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Validation failed\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"volume\",\n            message: \"volume must be between 0 and 100\"\n        }\n    };\n    return [null, msg];\n}\n\n// Generate command\nconst commandId = 'cmd_' + Date.now() + '_speak';\nconst timestamp = Math.floor(Date.now() / 1000);\n\n// MQTT payload\nmsg.mqttPayload = {\n    command_id: commandId,\n    audio_url: payload.audio_url,\n    volume: volume,\n    timestamp: timestamp\n};\n\nmsg.commandId = commandId;\nmsg.audioUrl = payload.audio_url;\nmsg.volume = volume;\nmsg.timestamp = timestamp;\nmsg.topic = 'doorbell/cmd/speak';\n\nreturn [msg, null]; // Send to success output",
+        "func": "// Node: Function - Validate Speak Command\nnode.warn('📨 [SPEAK] Request received');\nnode.warn('📦 Payload: ' + JSON.stringify(msg.payload));\n\nconst payload = msg.payload;\n\n// Validation\nif (!payload.audio_url) {\n    node.error('❌ Validation failed: audio_url missing');\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Validation failed\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"audio_url\",\n            message: \"audio_url is required\"\n        }\n    };\n    return [null, msg]; // Send to error output\n}\n\n// Validate volume\nconst volume = payload.volume || 80;\nif (volume < 0 || volume > 100) {\n    node.error('❌ Validation failed: volume out of range');\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Validation failed\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"volume\",\n            message: \"volume must be between 0 and 100\"\n        }\n    };\n    return [null, msg];\n}\n\n// Generate command\nconst commandId = 'cmd_' + Date.now() + '_speak';\nconst timestamp = Math.floor(Date.now() / 1000);\n\n// MQTT payload\nmsg.mqttPayload = {\n    command_id: commandId,\n    audio_url: payload.audio_url,\n    volume: volume,\n    timestamp: timestamp\n};\n\nmsg.commandId = commandId;\nmsg.audioUrl = payload.audio_url;\nmsg.volume = volume;\nmsg.timestamp = timestamp;\nmsg.topic = 'doorbell/cmd/speak';\n\nnode.warn('✅ Validation passed');\nnode.warn('🎵 Audio URL: ' + payload.audio_url);\nnode.warn('🔉 Volume: ' + volume);\nnode.warn('📡 MQTT Topic: ' + msg.topic);\n\nreturn [msg, null]; // Send to success output",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -324,7 +324,7 @@
         "y": 1400,
         "wires": [
             [
-                "ce3e4277b0986455",
+                "prepare_speak_mqtt",
                 "d6994a03a3653bad"
             ],
             [
@@ -333,13 +333,33 @@
         ]
     },
     {
+        "id": "prepare_speak_mqtt",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Prepare MQTT Payload",
+        "func": "// Set msg.payload for MQTT out node\nnode.warn('📡 [MQTT] Preparing to publish');\nnode.warn('📡 Topic: ' + msg.topic);\nnode.warn('📡 Payload: ' + JSON.stringify(msg.mqttPayload));\n\n// MQTT out node auto-converts object to JSON\\nmsg.payload = msg.mqttPayload;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 800,
+        "y": 1300,
+        "wires": [
+            [
+                "ce3e4277b0986455"
+            ]
+        ]
+    },
+    {
         "id": "ce3e4277b0986455",
         "type": "mqtt out",
         "z": "bd6bb11c58fb203e",
         "name": "Publish Speak Command",
-        "topic": "(set by msg.topic)",
+        "topic": "",
         "qos": "1",
-        "retain": "",
+        "retain": "false",
         "respTopic": "",
         "contentType": "",
         "userProps": "",
@@ -356,7 +376,11 @@
         "z": "bd6bb11c58fb203e",
         "name": "Return Success",
         "statusCode": "",
-        "headers": {},
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
         "x": 1340,
         "y": 1400,
         "wires": []
@@ -367,159 +391,17 @@
         "z": "bd6bb11c58fb203e",
         "name": "Return Error",
         "statusCode": "",
-        "headers": {},
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
         "x": 910,
         "y": 1560,
         "wires": []
     },
     {
-        "id": "8c47a7ec593edaf3",
-        "type": "http in",
-        "z": "bd6bb11c58fb203e",
-        "name": "POST /api/commands/siren",
-        "url": "/api/commands/siren",
-        "method": "post",
-        "upload": false,
-        "skipBodyParsing": false,
-        "swaggerDoc": "",
-        "x": 160,
-        "y": 1760,
-        "wires": [
-            [
-                "4011a2e6a74de64a"
-            ]
-        ]
-    },
-    {
-        "id": "4011a2e6a74de64a",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Validate Siren Command",
-        "func": "// Node: Function - Validate Siren Command\nconst payload = msg.payload;\n\n// Validate action\nif (!payload.action || (payload.action !== 'on' && payload.action !== 'off')) {\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Validation failed\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"action\",\n            message: \"action must be 'on' or 'off'\"\n        }\n    };\n    return [null, msg]; // Error output\n}\n\n// Validate duration\nlet duration = payload.duration || 5;\nif (duration < 1 || duration > 30) {\n    duration = 5; // Default to 5 seconds\n}\n\n// Generate command\nconst commandId = 'cmd_' + Date.now() + '_siren';\nconst timestamp = Math.floor(Date.now() / 1000);\n\n// MQTT payload\nmsg.mqttPayload = {\n    command_id: commandId,\n    action: payload.action,\n    duration: duration,\n    timestamp: timestamp\n};\n\nmsg.commandId = commandId;\nmsg.sirenAction = payload.action;\nmsg.duration = duration;\nmsg.timestamp = timestamp;\nmsg.topic = 'doorbell/cmd/siren';\n\nreturn [msg, null]; // Success output",
-        "outputs": 2,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 490,
-        "y": 1760,
-        "wires": [
-            [
-                "392ffc631e2b26b5",
-                "cc74db158d0f3f23"
-            ],
-            [
-                "42d5dad720f20507"
-            ]
-        ]
-    },
-    {
-        "id": "392ffc631e2b26b5",
-        "type": "mqtt out",
-        "z": "bd6bb11c58fb203e",
-        "name": "Publish Siren Command",
-        "topic": "(set by msg.topic)",
-        "qos": "1",
-        "retain": "",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "0506134bb93b271d",
-        "x": 830,
-        "y": 1720,
-        "wires": []
-    },
-    {
-        "id": "cc74db158d0f3f23",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": " Update Alarm Setting",
-        "func": "// Node: Function - Prepare DB Update\n// Update alarm_enabled in device_settings\nconst alarmEnabled = (msg.sirenAction === 'on');\n\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.method = 'PATCH';\nmsg.payload = {\n    alarm_enabled: alarmEnabled,\n    updated_at: new Date().toISOString()\n};\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 860,
-        "y": 1820,
-        "wires": [
-            [
-                "1a8b60ab10115ddd"
-            ]
-        ]
-    },
-    {
-        "id": "1a8b60ab10115ddd",
-        "type": "http request",
-        "z": "bd6bb11c58fb203e",
-        "name": "Update Device Settings",
-        "method": "use",
-        "ret": "txt",
-        "paytoqs": "ignore",
-        "url": "",
-        "tls": "",
-        "persist": false,
-        "proxy": "",
-        "insecureHTTPParser": false,
-        "authType": "",
-        "senderr": false,
-        "headers": [],
-        "x": 1110,
-        "y": 1860,
-        "wires": [
-            [
-                "45a9675ee414133e"
-            ]
-        ]
-    },
-    {
-        "id": "45a9675ee414133e",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Format Success Response",
-        "func": "// Node: Function - Format Siren Response\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    message: \"Siren command sent to ESP32\",\n    command_id: msg.commandId,\n    action: msg.sirenAction,\n    duration: msg.duration,\n    timestamp: msg.timestamp\n};\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1420,
-        "y": 1860,
-        "wires": [
-            [
-                "690cf0ef5820a67e"
-            ]
-        ]
-    },
-    {
-        "id": "42d5dad720f20507",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return Error",
-        "statusCode": "",
-        "headers": {},
-        "x": 750,
-        "y": 1960,
-        "wires": []
-    },
-    {
-        "id": "690cf0ef5820a67e",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return Success",
-        "statusCode": "",
-        "headers": {},
-        "x": 1700,
-        "y": 1860,
-        "wires": []
-    },
-    {
-        "id": "38fb39db6124580f",
+        "id": "new_get_settings",
         "type": "http in",
         "z": "bd6bb11c58fb203e",
         "name": "GET /api/settings",
@@ -529,118 +411,18 @@
         "skipBodyParsing": false,
         "swaggerDoc": "",
         "x": 180,
-        "y": 2340,
+        "y": 2200,
         "wires": [
             [
-                "695db33846c5a09b"
+                "new_query_settings"
             ]
         ]
     },
     {
-        "id": "695db33846c5a09b",
+        "id": "new_query_settings",
         "type": "function",
         "z": "bd6bb11c58fb203e",
-        "name": "Build Query",
-        "func": "// Node: Function - Build Settings Query\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 430,
-        "y": 2340,
-        "wires": [
-            [
-                "de6972c2a55037a7"
-            ]
-        ]
-    },
-    {
-        "id": "de6972c2a55037a7",
-        "type": "http request",
-        "z": "bd6bb11c58fb203e",
-        "name": "Query Settings from Supabase",
-        "method": "GET",
-        "ret": "txt",
-        "paytoqs": "ignore",
-        "url": "(set by msg.url)",
-        "tls": "",
-        "persist": false,
-        "proxy": "",
-        "insecureHTTPParser": false,
-        "authType": "",
-        "senderr": false,
-        "headers": [],
-        "x": 750,
-        "y": 2340,
-        "wires": [
-            [
-                "9bf035b87a8f19de"
-            ]
-        ]
-    },
-    {
-        "id": "9bf035b87a8f19de",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Format Response",
-        "func": "// Node: Function - Format Settings Response\nlet data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        data = [];\n    }\n}\n\nif (Array.isArray(data) && data.length > 0) {\n    msg.statusCode = 200;\n    msg.payload = {\n        success: true,\n        data: data[0]\n    };\n} else {\n    msg.statusCode = 404;\n    msg.payload = {\n        success: false,\n        error: \"Settings not found\",\n        code: \"NOT_FOUND\"\n    };\n}\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1070,
-        "y": 2340,
-        "wires": [
-            [
-                "0ac85d2d434516c9"
-            ]
-        ]
-    },
-    {
-        "id": "0ac85d2d434516c9",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return Settings",
-        "statusCode": "",
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
-        },
-        "x": 1300,
-        "y": 2340,
-        "wires": []
-    },
-    {
-        "id": "esp32_settings_request_mqtt",
-        "type": "mqtt in",
-        "z": "bd6bb11c58fb203e",
-        "name": "ESP32 Settings Request",
-        "topic": "doorbell/cmd/request_settings",
-        "qos": "1",
-        "datatype": "auto-detect",
-        "broker": "0506134bb93b271d",
-        "nl": false,
-        "rap": true,
-        "rh": 0,
-        "inputs": 0,
-        "x": 180,
-        "y": 2240,
-        "wires": [
-            [
-                "fetch_settings_for_esp32"
-            ]
-        ]
-    },
-    {
-        "id": "fetch_settings_for_esp32",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Build Settings Query",
+        "name": "Fetch from Supabase",
         "func": "msg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
@@ -648,19 +430,19 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 450,
-        "y": 2240,
+        "x": 430,
+        "y": 2200,
         "wires": [
             [
-                "query_settings_for_esp32"
+                "new_http_get_settings"
             ]
         ]
     },
     {
-        "id": "query_settings_for_esp32",
+        "id": "new_http_get_settings",
         "type": "http request",
         "z": "bd6bb11c58fb203e",
-        "name": "Get Settings from DB",
+        "name": "GET Settings",
         "method": "GET",
         "ret": "txt",
         "paytoqs": "ignore",
@@ -672,103 +454,51 @@
         "authType": "",
         "senderr": false,
         "headers": [],
-        "x": 740,
-        "y": 2240,
+        "x": 650,
+        "y": 2200,
         "wires": [
             [
-                "prepare_mqtt_settings_sync"
+                "new_format_get_response"
             ]
         ]
     },
     {
-        "id": "prepare_mqtt_settings_sync",
+        "id": "new_format_get_response",
         "type": "function",
         "z": "bd6bb11c58fb203e",
-        "name": "Format Settings for ESP32",
-        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        return null;\n    }\n}\n\nconst settings = Array.isArray(data) ? data[0] : data;\nif (!settings) {\n    return null;\n}\n\nmsg.payload = {\n    action: 'sync_settings',\n    speaker_volume: settings.speaker_volume || 75,\n    pir_enabled: settings.pir_enabled !== false,\n    alarm_enabled: settings.alarm_enabled || false,\n    notifications_enabled: settings.notifications_enabled !== false,\n    do_not_disturb: settings.do_not_disturb || false,\n    alarm_auto_play: settings.alarm_auto_play !== false,\n    timestamp: Math.floor(Date.now() / 1000)\n};\n\nmsg.topic = 'doorbell/cmd/settings';\nreturn msg;",
+        "name": "Format Response",
+        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    data = JSON.parse(data);\n}\n\nconst settings = Array.isArray(data) ? data[0] : data;\n\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    data: settings\n};\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1020,
-        "y": 2240,
+        "x": 860,
+        "y": 2200,
         "wires": [
             [
-                "send_settings_to_esp32"
+                "new_get_response"
             ]
         ]
     },
     {
-        "id": "send_settings_to_esp32",
-        "type": "mqtt out",
-        "z": "bd6bb11c58fb203e",
-        "name": "Send Settings to ESP32",
-        "topic": "",
-        "qos": "1",
-        "retain": "false",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "0506134bb93b271d",
-        "x": 1310,
-        "y": 2240,
-        "wires": []
-    },
-    {
-        "id": "cors_settings_options",
-        "type": "http in",
-        "z": "bd6bb11c58fb203e",
-        "name": "OPTIONS /api/settings",
-        "url": "/api/settings",
-        "method": "options",
-        "upload": false,
-        "skipBodyParsing": false,
-        "swaggerDoc": "",
-        "x": 200,
-        "y": 2420,
-        "wires": [
-            [
-                "cors_settings_response"
-            ]
-        ]
-    },
-    {
-        "id": "cors_settings_response",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "CORS Preflight",
-        "func": "msg.statusCode = 204;\nmsg.headers = {\n    'Access-Control-Allow-Origin': '*',\n    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',\n    'Access-Control-Allow-Headers': 'Content-Type'\n};\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 460,
-        "y": 2420,
-        "wires": [
-            [
-                "cors_settings_http_response"
-            ]
-        ]
-    },
-    {
-        "id": "cors_settings_http_response",
+        "id": "new_get_response",
         "type": "http response",
         "z": "bd6bb11c58fb203e",
-        "name": "",
+        "name": "Return to Frontend",
         "statusCode": "",
-        "headers": {},
-        "x": 690,
-        "y": 2420,
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "x": 1090,
+        "y": 2200,
         "wires": []
     },
     {
-        "id": "b67385382ab9ee2e",
+        "id": "new_put_settings",
         "type": "http in",
         "z": "bd6bb11c58fb203e",
         "name": "PUT /api/settings",
@@ -777,149 +507,42 @@
         "upload": false,
         "skipBodyParsing": false,
         "swaggerDoc": "",
-        "x": 190,
-        "y": 2540,
+        "x": 180,
+        "y": 2300,
         "wires": [
             [
-                "6737d59b787851ce"
+                "new_validate_settings"
             ]
         ]
     },
     {
-        "id": "6737d59b787851ce",
+        "id": "new_validate_settings",
         "type": "function",
         "z": "bd6bb11c58fb203e",
-        "name": " Validate & Prepare Update",
-        "func": "// Node: Function - Validate Settings Update\nconst payload = msg.payload;\n\n// Validate volume\nif (payload.speaker_volume !== undefined) {\n    if (payload.speaker_volume < 0 || payload.speaker_volume > 100) {\n        msg.statusCode = 400;\n        msg.payload = {\n            success: false,\n            error: \"Validation failed\",\n            code: \"VALIDATION_ERROR\",\n            details: {\n                field: \"speaker_volume\",\n                message: \"speaker_volume must be between 0 and 100\"\n            }\n        };\n        return [null, msg]; // Error output\n    }\n}\n\n// Build update object (only include provided fields)\nconst updateData = {\n    updated_at: new Date().toISOString()\n};\n\nif (payload.alarm_enabled !== undefined) updateData.alarm_enabled = payload.alarm_enabled;\nif (payload.speaker_volume !== undefined) updateData.speaker_volume = payload.speaker_volume;\nif (payload.do_not_disturb !== undefined) updateData.do_not_disturb = payload.do_not_disturb;\nif (payload.pir_enabled !== undefined) updateData.pir_enabled = payload.pir_enabled;\nif (payload.notifications_enabled !== undefined) updateData.notifications_enabled = payload.notifications_enabled;\n\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.method = 'PUT';\nmsg.payload = updateData;\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn [msg, null];",
+        "name": "Validate & Update DB",
+        "func": "const payload = msg.payload;\n\n// Validate volume\nif (payload.speaker_volume !== undefined && (payload.speaker_volume < 0 || payload.speaker_volume > 100)) {\n    msg.statusCode = 400;\n    msg.payload = { success: false, error: \"speaker_volume must be 0-100\" };\n    return [null, msg];\n}\n\n// Build update\nconst update = { updated_at: new Date().toISOString() };\nif (payload.alarm_enabled !== undefined) update.alarm_enabled = payload.alarm_enabled;\nif (payload.speaker_volume !== undefined) update.speaker_volume = payload.speaker_volume;\nif (payload.pir_enabled !== undefined) update.pir_enabled = payload.pir_enabled;\nif (payload.notifications_enabled !== undefined) update.notifications_enabled = payload.notifications_enabled;\nif (payload.do_not_disturb !== undefined) update.do_not_disturb = payload.do_not_disturb;\nif (payload.alarm_auto_play !== undefined) update.alarm_auto_play = payload.alarm_auto_play;\nif (payload.temp_enabled !== undefined) update.temp_enabled = payload.temp_enabled;\n\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.method = 'PATCH';\nmsg.payload = update;\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json'\n};\n\nreturn [msg, null];",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 520,
-        "y": 2540,
+        "x": 440,
+        "y": 2300,
         "wires": [
             [
-                "bd317ea12f31cbab"
+                "new_http_update"
             ],
             [
-                "b1539b52035110ac"
+                "new_error_response"
             ]
         ]
     },
     {
-        "id": "bf1b5a08896a6a1c",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Prepare MQTT Sync",
-        "func": "// Node: Function - Prepare Settings MQTT\nlet data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        data = [];\n    }\n}\n\n// Get the updated settings\nconst settings = Array.isArray(data) ? data[0] : data;\n\n// Prepare MQTT payload for ESP32 with action field\nmsg.payload = {\n    action: 'sync_settings',\n    speaker_volume: settings.speaker_volume,\n    pir_enabled: settings.pir_enabled,\n    alarm_enabled: settings.alarm_enabled,\n    notifications_enabled: settings.notifications_enabled,\n    do_not_disturb: settings.do_not_disturb,\n    alarm_auto_play: settings.alarm_auto_play || true,\n    timestamp: Math.floor(Date.now() / 1000)\n};\n\nmsg.topic = 'doorbell/cmd/settings';\nmsg.settingsData = settings; // Store for HTTP response\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1080,
-        "y": 2520,
-        "wires": [
-            [
-                "14e4d6d37f5cdc19",
-                "311801786757dfdf",
-                "debug_settings_mqtt"
-            ]
-        ]
-    },
-    {
-        "id": "debug_settings_mqtt",
-        "type": "debug",
-        "z": "bd6bb11c58fb203e",
-        "name": "⚙️ SETTINGS SYNC",
-        "active": true,
-        "tosidebar": true,
-        "console": true,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 1350,
-        "y": 2580,
-        "wires": []
-    },
-    {
-        "id": "14e4d6d37f5cdc19",
-        "type": "mqtt out",
-        "z": "bd6bb11c58fb203e",
-        "name": "Sync Settings to ESP32",
-        "topic": "(set by msg.topic)",
-        "qos": "1",
-        "retain": "false",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "0506134bb93b271d",
-        "x": 1350,
-        "y": 2500,
-        "wires": []
-    },
-    {
-        "id": "311801786757dfdf",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Format HTTP Response",
-        "func": "// Node: Function - Format Settings Response\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    message: \"Settings updated\",\n    data: msg.settingsData\n};\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1350,
-        "y": 2620,
-        "wires": [
-            [
-                "15a80ab8af386938"
-            ]
-        ]
-    },
-    {
-        "id": "b1539b52035110ac",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return Error",
-        "statusCode": "",
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
-        },
-        "x": 790,
-        "y": 2700,
-        "wires": []
-    },
-    {
-        "id": "15a80ab8af386938",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return Success",
-        "statusCode": "",
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
-        },
-        "x": 1580,
-        "y": 2620,
-        "wires": []
-    },
-    {
-        "id": "bd317ea12f31cbab",
+        "id": "new_http_update",
         "type": "http request",
         "z": "bd6bb11c58fb203e",
-        "name": "Update Settings in DB",
+        "name": "Update in DB",
         "method": "use",
         "ret": "txt",
         "paytoqs": "ignore",
@@ -931,13 +554,282 @@
         "authType": "",
         "senderr": false,
         "headers": [],
-        "x": 840,
-        "y": 2520,
+        "x": 690,
+        "y": 2280,
         "wires": [
             [
-                "bf1b5a08896a6a1c"
+                "new_fetch_updated"
             ]
         ]
+    },
+    {
+        "id": "new_fetch_updated",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Fetch Updated Settings",
+        "func": "msg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.method = 'GET';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 930,
+        "y": 2280,
+        "wires": [
+            [
+                "new_http_fetch"
+            ]
+        ]
+    },
+    {
+        "id": "new_http_fetch",
+        "type": "http request",
+        "z": "bd6bb11c58fb203e",
+        "name": "GET Updated",
+        "method": "use",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1150,
+        "y": 2280,
+        "wires": [
+            [
+                "new_publish_and_respond"
+            ]
+        ]
+    },
+    {
+        "id": "new_publish_and_respond",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Publish to MQTT & Format Response",
+        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    data = JSON.parse(data);\n}\n\nconst settings = Array.isArray(data) ? data[0] : data;\n\n// Publish to MQTT\nconst mqttMsg = {\n    payload: {\n        action: 'sync_settings',\n        speaker_volume: settings.speaker_volume ?? 75,\n        pir_enabled: settings.pir_enabled !== false,\n        alarm_enabled: settings.alarm_enabled !== false,\n        notifications_enabled: settings.notifications_enabled !== false,\n        do_not_disturb: settings.do_not_disturb === true,\n        alarm_auto_play: settings.alarm_auto_play !== false,\n        temp_enabled: settings.temp_enabled !== false\n    },\n    topic: 'doorbell/cmd/settings',\n    qos: 1\n};\n\n// HTTP response (preserve req/res)\nconst httpMsg = {\n    req: msg.req,\n    res: msg.res,\n    payload: {\n        success: true,\n        message: 'Settings updated',\n        data: settings\n    },\n    statusCode: 200\n};\n\nreturn [mqttMsg, httpMsg];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1440,
+        "y": 2280,
+        "wires": [
+            [
+                "new_mqtt_out"
+            ],
+            [
+                "new_put_response"
+            ]
+        ]
+    },
+    {
+        "id": "new_mqtt_out",
+        "type": "mqtt out",
+        "z": "bd6bb11c58fb203e",
+        "name": "Publish to ESP32",
+        "topic": "",
+        "qos": "",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "0506134bb93b271d",
+        "x": 1740,
+        "y": 2240,
+        "wires": []
+    },
+    {
+        "id": "new_put_response",
+        "type": "http response",
+        "z": "bd6bb11c58fb203e",
+        "name": "Return to Frontend",
+        "statusCode": "",
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "x": 1740,
+        "y": 2320,
+        "wires": []
+    },
+    {
+        "id": "new_error_response",
+        "type": "http response",
+        "z": "bd6bb11c58fb203e",
+        "name": "Return Error",
+        "statusCode": "",
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "x": 680,
+        "y": 2360,
+        "wires": []
+    },
+    {
+        "id": "new_options_settings",
+        "type": "http in",
+        "z": "bd6bb11c58fb203e",
+        "name": "OPTIONS /api/settings",
+        "url": "/api/settings",
+        "method": "options",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 200,
+        "y": 2400,
+        "wires": [
+            [
+                "new_cors_response"
+            ]
+        ]
+    },
+    {
+        "id": "new_cors_response",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "CORS Headers",
+        "func": "msg.statusCode = 204;\nmsg.payload = '';\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 2400,
+        "wires": [
+            [
+                "new_options_response"
+            ]
+        ]
+    },
+    {
+        "id": "new_options_response",
+        "type": "http response",
+        "z": "bd6bb11c58fb203e",
+        "name": "Return CORS",
+        "statusCode": "",
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "x": 660,
+        "y": 2400,
+        "wires": []
+    },
+    {
+        "id": "mqtt_request_settings_in",
+        "type": "mqtt in",
+        "z": "bd6bb11c58fb203e",
+        "name": "Request Settings",
+        "topic": "doorbell/cmd/request_settings",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "0506134bb93b271d",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 190,
+        "y": 2500,
+        "wires": [
+            [
+                "fetch_settings_for_mqtt"
+            ]
+        ]
+    },
+    {
+        "id": "fetch_settings_for_mqtt",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Prepare Settings Query",
+        "func": "msg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 2500,
+        "wires": [
+            [
+                "http_get_settings_mqtt"
+            ]
+        ]
+    },
+    {
+        "id": "http_get_settings_mqtt",
+        "type": "http request",
+        "z": "bd6bb11c58fb203e",
+        "name": "Query Settings DB",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "sendsign": false,
+        "x": 740,
+        "y": 2500,
+        "wires": [
+            [
+                "publish_settings_to_esp"
+            ]
+        ]
+    },
+    {
+        "id": "publish_settings_to_esp",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Publish Settings to ESP32",
+        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    data = JSON.parse(data);\n}\n\nconst settings = Array.isArray(data) ? data[0] : data;\n\nmsg.payload = {\n    action: 'sync_settings',\n    speaker_volume: settings.speaker_volume ?? 75,\n    pir_enabled: settings.pir_enabled !== false,\n    alarm_enabled: settings.alarm_enabled !== false,\n    notifications_enabled: settings.notifications_enabled !== false,\n    do_not_disturb: settings.do_not_disturb === true,\n    alarm_auto_play: settings.alarm_auto_play !== false,\n    temp_enabled: settings.temp_enabled !== false\n};\nmsg.topic = 'doorbell/cmd/settings';\nmsg.qos = 1;\n\nnode.warn('📤 Publishing settings to ESP32: ' + JSON.stringify(msg.payload));\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1040,
+        "y": 2500,
+        "wires": [
+            [
+                "mqtt_publish_settings"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_publish_settings",
+        "type": "mqtt out",
+        "z": "bd6bb11c58fb203e",
+        "name": "Publish to doorbell/cmd/settings",
+        "topic": "",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "0506134bb93b271d",
+        "x": 1370,
+        "y": 2500,
+        "wires": []
     },
     {
         "id": "3b5ca85c7e8c82e7",
@@ -977,6 +869,129 @@
                 "ac1b81505cf19f62"
             ]
         ]
+    },
+    {
+        "id": "options_siren",
+        "type": "http in",
+        "z": "bd6bb11c58fb203e",
+        "name": "OPTIONS /api/commands/siren",
+        "url": "/api/commands/siren",
+        "method": "options",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 190,
+        "y": 1040,
+        "wires": [
+            [
+                "cors_siren_response"
+            ]
+        ]
+    },
+    {
+        "id": "cors_siren_response",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "CORS Headers",
+        "func": "msg.statusCode = 204;\nmsg.headers = {\n    'Access-Control-Allow-Origin': '*',\n    'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',\n    'Access-Control-Allow-Headers': 'Content-Type'\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 450,
+        "y": 1040,
+        "wires": [
+            [
+                "http_siren_options_response"
+            ]
+        ]
+    },
+    {
+        "id": "http_siren_options_response",
+        "type": "http response",
+        "z": "bd6bb11c58fb203e",
+        "name": "Return CORS",
+        "statusCode": "",
+        "headers": {},
+        "x": 690,
+        "y": 1040,
+        "wires": []
+    },
+    {
+        "id": "http_post_siren",
+        "type": "http in",
+        "z": "bd6bb11c58fb203e",
+        "name": "POST /api/commands/siren",
+        "url": "/api/commands/siren",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 190,
+        "y": 1100,
+        "wires": [
+            [
+                "generate_siren_command"
+            ]
+        ]
+    },
+    {
+        "id": "generate_siren_command",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Generate Siren Command",
+        "func": "// Node: Function - Generate Siren Command\nconst commandId = 'cmd_' + Date.now() + '_siren';\nconst timestamp = Math.floor(Date.now() / 1000);\nconst action = msg.payload.action || 'ON';\nconst duration = msg.payload.duration || 15;\n\n// MQTT message\nconst mqttMsg = {\n    payload: {\n        action: action,\n        duration: duration,\n        command_id: commandId,\n        timestamp: timestamp\n    },\n    topic: 'doorbell/cmd/siren',\n    qos: 1\n};\n\n// HTTP response message (preserve req/res)\nconst httpMsg = {\n    req: msg.req,\n    res: msg.res,\n    payload: {\n        success: true,\n        message: 'Siren command sent',\n        command_id: commandId,\n        action: action\n    },\n    statusCode: 200\n};\n\nreturn [mqttMsg, httpMsg];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 1100,
+        "wires": [
+            [
+                "mqtt_siren_out"
+            ],
+            [
+                "return_siren_success"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_siren_out",
+        "type": "mqtt out",
+        "z": "bd6bb11c58fb203e",
+        "name": "Publish Siren Command",
+        "topic": "",
+        "qos": "",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "0506134bb93b271d",
+        "x": 900,
+        "y": 1080,
+        "wires": []
+    },
+    {
+        "id": "return_siren_success",
+        "type": "http response",
+        "z": "bd6bb11c58fb203e",
+        "name": "Return Success",
+        "statusCode": "",
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "x": 1150,
+        "y": 1160,
+        "wires": []
     },
     {
         "id": "2a96d82ad8c21e0a",
@@ -1141,12 +1156,65 @@
         "wires": []
     },
     {
+        "id": "options_quick_response_http",
+        "type": "http in",
+        "z": "bd6bb11c58fb203e",
+        "name": "OPTIONS /api/quick-responses/:title",
+        "url": "/api/quick-responses/:title",
+        "method": "options",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 180,
+        "y": 3040,
+        "wires": [
+            [
+                "cors_quick_response_options"
+            ]
+        ]
+    },
+    {
+        "id": "cors_quick_response_options",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "CORS Headers",
+        "func": "msg.statusCode = 204;\nmsg.payload = '';\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 3040,
+        "wires": [
+            [
+                "http_quick_response_options"
+            ]
+        ]
+    },
+    {
+        "id": "http_quick_response_options",
+        "type": "http response",
+        "z": "bd6bb11c58fb203e",
+        "name": "Return CORS",
+        "statusCode": "",
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "x": 670,
+        "y": 3040,
+        "wires": []
+    },
+    {
         "id": "patch_quick_response_http",
         "type": "http in",
         "z": "bd6bb11c58fb203e",
-        "name": "PATCH /api/quick-responses/:title",
+        "name": "PUT /api/quick-responses/:title",
         "url": "/api/quick-responses/:title",
-        "method": "patch",
+        "method": "put",
         "upload": false,
         "skipBodyParsing": false,
         "swaggerDoc": "",
@@ -1163,7 +1231,7 @@
         "type": "function",
         "z": "bd6bb11c58fb203e",
         "name": "Validate & Prepare Update",
-        "func": "const title = msg.req.params.title;\nconst payload = msg.payload;\n\n// Validate title\nconst allowedTitles = ['wait', 'notHome', 'busy', 'package'];\nif (!title || !allowedTitles.includes(title)) {\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Invalid title\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"title\",\n            message: \"title must be one of: wait, notHome, busy, package\"\n        }\n    };\n    return [null, msg];\n}\n\n// Validate audio_url\nif (!payload.audio_url || typeof payload.audio_url !== 'string') {\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Validation failed\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"audio_url\",\n            message: \"audio_url is required and must be a string\"\n        }\n    };\n    return [null, msg];\n}\n\n// Prepare update\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/quick_responses?title=eq.' + title;\nmsg.method = 'PATCH';\nmsg.payload = {\n    audio_url: payload.audio_url,\n    created_at: new Date().toISOString()\n};\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nmsg.titleParam = title;\n\nreturn [msg, null];",
+        "func": "const title = msg.req.params.title;\nconst payload = msg.payload;\n\n// Validate title\nconst allowedTitles = ['wait', 'notHome', 'busy', 'package'];\nif (!title || !allowedTitles.includes(title)) {\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Invalid title\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"title\",\n            message: \"title must be one of: wait, notHome, busy, package\"\n        }\n    };\n    return [null, msg];\n}\n\n// Validate audio_url\nif (!payload.audio_url || typeof payload.audio_url !== 'string') {\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Validation failed\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"audio_url\",\n            message: \"audio_url is required and must be a string\"\n        }\n    };\n    return [null, msg];\n}\n\n// Prepare update\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/quick_responses?title=eq.' + title;\nmsg.method = 'PATCH';\nmsg.payload = {\n    audio_url: payload.audio_url,\n    created_at: new Date().toISOString()\n};\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=minimal'\n};\n\nmsg.titleParam = title;\n\nreturn [msg, null];",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -1201,6 +1269,50 @@
         "y": 3080,
         "wires": [
             [
+                "query_updated_quick_response"
+            ]
+        ]
+    },
+    {
+        "id": "query_updated_quick_response",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Build Query for Full Record",
+        "func": "// After update, fetch the complete record\nconst title = msg.titleParam;\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/quick_responses?title=eq.' + title;\nmsg.method = 'GET';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 900,
+        "y": 3140,
+        "wires": [
+            [
+                "fetch_updated_quick_response"
+            ]
+        ]
+    },
+    {
+        "id": "fetch_updated_quick_response",
+        "type": "http request",
+        "z": "bd6bb11c58fb203e",
+        "name": "Get Full Record",
+        "method": "use",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1170,
+        "y": 3140,
+        "wires": [
+            [
                 "format_update_response"
             ]
         ]
@@ -1231,7 +1343,11 @@
         "z": "bd6bb11c58fb203e",
         "name": "Return Success",
         "statusCode": "",
-        "headers": {},
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
         "x": 1430,
         "y": 3080,
         "wires": []
@@ -1242,9 +1358,50 @@
         "z": "bd6bb11c58fb203e",
         "name": "Return Error",
         "statusCode": "",
-        "headers": {},
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
         "x": 830,
         "y": 3180,
+        "wires": []
+    },
+    {
+        "id": "mqtt_test_subscribe",
+        "type": "mqtt in",
+        "z": "bd6bb11c58fb203e",
+        "name": "TEST - Subscribe to doorbell/cmd/speak",
+        "topic": "doorbell/cmd/speak",
+        "qos": "1",
+        "datatype": "utf8",
+        "broker": "0506134bb93b271d",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 220,
+        "y": 1600,
+        "wires": [
+            [
+                "mqtt_test_debug"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_test_debug",
+        "type": "debug",
+        "z": "bd6bb11c58fb203e",
+        "name": "TEST - MQTT Speak Received",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": true,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "payload",
+        "statusType": "auto",
+        "x": 560,
+        "y": 1600,
         "wires": []
     },
     {
@@ -1419,7 +1576,7 @@
         "type": "function",
         "z": "0f2c315966152f10",
         "name": "Prepare Voice Insert",
-        "func": "const payload = msg.payload;\n\nif (!payload.audio_url || !payload.timestamp) {\n    node.warn('Invalid voice note payload');\n    return null;\n}\n\nmsg.payload = {\n    event_type: 'voice_note',\n    audio_url: payload.audio_url,\n    description: 'Voice note recorded',\n    created_at: new Date(payload.timestamp * 1000).toISOString(),\n    metadata: {\n        source: 'doorbell_microphone',\n        device_id: payload.device_id || 'ESP32_DOORBELL',\n        duration_ms: payload.duration_ms || 0,\n        raw_timestamp: payload.timestamp\n    }\n};\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn msg;",
+        "func": "const payload = msg.payload;\n\nif (!payload.audio_url || !payload.timestamp) {\n    node.warn('Invalid voice note payload');\n    return null;\n}\n\n// Convert duration_ms to duration_seconds (must be INTEGER for database)\nlet durationSeconds = 1; // Default to 1 second minimum\nif (payload.duration_seconds) {\n    durationSeconds = Math.ceil(payload.duration_seconds);\n} else if (payload.duration_ms) {\n    // Round up: 608ms -> 1s, 1200ms -> 2s\n    durationSeconds = Math.ceil(payload.duration_ms / 1000);\n}\n\nmsg.payload = {\n    audio_url: payload.audio_url,\n    duration_seconds: durationSeconds,\n    created_at: new Date(payload.timestamp * 1000).toISOString(),\n    metadata: {\n        source: 'doorbell_microphone',\n        device_id: payload.device_id || 'ESP32_DOORBELL',\n        description: 'Khách để lại lời nhắn',\n        raw_timestamp: payload.timestamp,\n        duration_ms: payload.duration_ms\n    }\n};\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nnode.warn('📝 Voice Note Insert: ' + JSON.stringify(msg.payload));\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -1441,7 +1598,7 @@
         "method": "POST",
         "ret": "txt",
         "paytoqs": "ignore",
-        "url": "https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/events",
+        "url": "https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/voice_notes",
         "tls": "",
         "persist": false,
         "proxy": "",
@@ -1453,9 +1610,26 @@
         "y": 160,
         "wires": [
             [
+                "log_voice_response",
                 "debug_voice"
             ]
         ]
+    },
+    {
+        "id": "log_voice_response",
+        "type": "function",
+        "z": "0f2c315966152f10",
+        "name": "Log Voice Response",
+        "func": "node.warn('🔍 Voice Insert Response:');\nnode.warn('Status Code: ' + msg.statusCode);\nnode.warn('Payload: ' + JSON.stringify(msg.payload));\nnode.warn('Headers: ' + JSON.stringify(msg.headers));\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 840,
+        "y": 120,
+        "wires": [[]]
     },
     {
         "id": "debug_voice",
@@ -1464,9 +1638,10 @@
         "name": "Voice DB Response",
         "active": true,
         "tosidebar": true,
-        "console": false,
+        "console": true,
         "tostatus": false,
-        "complete": "false",
+        "complete": "true",
+        "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
         "x": 840,

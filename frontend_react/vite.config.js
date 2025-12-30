@@ -11,8 +11,7 @@ export default defineConfig({
         target: 'http://localhost:1880', // Địa chỉ Node-RED của anh
         changeOrigin: true,
         secure: false,
-        
-        rewrite: (path) => path.replace(/^\/api/, ''), 
+        // KHÔNG rewrite - giữ nguyên /api prefix vì Node-RED endpoint cần /api
       },
     },
   },

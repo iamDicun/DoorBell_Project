@@ -5,6 +5,7 @@
 #include <PubSubClient.h>
 #include "config.h"
 #include "audio_service.h"
+#include "audio.h"
 #include "doorbell_features.h"
 #include <ArduinoJson.h>
 #include <time.h>
@@ -23,7 +24,8 @@ static DeviceSettings deviceSettings = {
     .speaker_volume = 75,
     .pir_enabled = true,
     .notifications_enabled = true,
-    .alarm_auto_play = true
+    .alarm_auto_play = true,
+    .temp_enabled = true
 };
 
 // Helper functions
@@ -62,12 +64,14 @@ void mqttServiceInit() {
     WiFi.setHostname("ESP32-Doorbell");
     
     // Set Google DNS servers (fixes DNS resolution issues)
-    // IPAddress primaryDNS(8, 8, 8, 8);       // Google DNS
-    // IPAddress secondaryDNS(8, 8, 4, 4);     // Google DNS backup
-    // WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, primaryDNS, secondaryDNS);
+    IPAddress primaryDNS(8, 8, 8, 8);       // Google DNS
+    IPAddress secondaryDNS(8, 8, 4, 4);     // Google DNS backup
     
     Serial.printf("[WiFi] Connecting to SSID: %s\n", WIFI_SSID);
-    Serial.println("[WiFi] Using custom DNS: 8.8.8.8, 8.8.4.4");
+    Serial.println("[WiFi] Setting custom DNS: 8.8.8.8, 8.8.4.4");
+    
+    // Configure DNS before connecting
+    WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, primaryDNS, secondaryDNS);
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     Serial.print("[WiFi] Connecting");
     
@@ -165,9 +169,17 @@ void mqttServiceInit() {
     if (mqttReconnect()) {
         Serial.println("✓ [MQTT] CONNECTED TO HIVEMQ!");
         
-        // Request settings sync from Node-RED
-        Serial.println("[Settings] Requesting settings from server...");
-        mqttPublishJson("doorbell/cmd/request_settings", "{\"device_id\":\"ESP32\",\"action\":\"get_settings\"}");
+        // Request settings sync from Node-RED after successful connection
+        Serial.println("[MQTT] Requesting initial settings from server...");
+        delay(1000); // Wait 1 second for MQTT to stabilize
+        
+        // Publish request to fetch settings
+        const char* requestPayload = "{\"device_id\":\"ESP32_DOORBELL\",\"action\":\"request_settings\"}";
+        if (mqttClient.publish("doorbell/cmd/request_settings", requestPayload, false)) {
+            Serial.println("✓ [MQTT] Settings request sent");
+        } else {
+            Serial.println("✗ [MQTT] Failed to send settings request");
+        }
         
         Serial.println("========================================\n");
     } else {
@@ -207,10 +219,46 @@ void mqttPublishJson(const char* topic, const char* payload) {
     }
 }
 
+void mqttHandleSpeakCommand(const char* jsonPayload) {
+    Serial.println("\n========================================");
+    Serial.println("[MQTT] 🔊 Processing SPEAK command");
+    Serial.println("========================================");
+    Serial.printf("[MQTT] Payload: %s\n", jsonPayload);
+    
+    StaticJsonDocument<512> doc;
+    DeserializationError error = deserializeJson(doc, jsonPayload);
+    
+    if (error) {
+        Serial.printf("[MQTT] ✗ JSON parse error: %s\n", error.c_str());
+        return;
+    }
+    
+    const char* audioUrl = doc["audio_url"];
+    int volume = doc["volume"] | 80;
+    
+    if (!audioUrl) {
+        Serial.println("[MQTT] ✗ No audio_url in payload");
+        return;
+    }
+    
+    Serial.printf("[MQTT] ✓ Audio URL: %s\n", audioUrl);
+    Serial.printf("[MQTT] ✓ Volume: %d%%\n", volume);
+    
+    // Set volume (0-100 to 0.0-1.0)
+    float volumeFloat = volume / 100.0f;
+    setVolumeLevel(volumeFloat);
+    
+    // Play audio from URL
+    Serial.println("[MQTT] ▶️ Starting audio playback...");
+    playUrl(audioUrl);
+    
+    Serial.println("========================================\n");
+}
+
 void mqttHandleCommandPayload(const char* jsonPayload) {
     Serial.printf("[MQTT] command received: %s\n", jsonPayload);
     
-    StaticJsonDocument<256> doc;
+    StaticJsonDocument<512> doc;
     DeserializationError error = deserializeJson(doc, jsonPayload);
     
     if (error) {
@@ -229,7 +277,8 @@ void mqttHandleCommandPayload(const char* jsonPayload) {
     // Alarm ON/OFF - Luong 2: Backend control alarm
     if (strcmp(action, "ON") == 0) {
         Serial.println("[MQTT] Command: Turn alarm ON");
-        activateAlarm();
+        int duration = doc["duration"] | 0;
+        activateAlarm(duration);
     }
     else if (strcmp(action, "OFF") == 0) {
         Serial.println("[MQTT] Command: Turn alarm OFF");
@@ -267,6 +316,11 @@ void mqttHandleCommandPayload(const char* jsonPayload) {
     }
     else if (strcmp(action, "capture_burst") == 0) {
         captureSecurityBurst();
+    }
+    // Settings updated notification - Trigger fetch
+    else if (strcmp(action, "settings_updated") == 0) {
+        Serial.println("[MQTT] Settings updated on server. Requesting new settings...");
+        mqttPublishJson("doorbell/cmd/request_settings", "{\"device_id\":\"ESP32\",\"action\":\"get_settings\"}");
     }
     else if (strcmp(action, "sync_settings") == 0) {
         // Settings sync from Node-RED
@@ -330,6 +384,15 @@ void mqttHandleCommandPayload(const char* jsonPayload) {
             if (deviceSettings.alarm_auto_play != newAutoPlay) {
                 deviceSettings.alarm_auto_play = newAutoPlay;
                 Serial.printf("[Settings] ✓ Alarm auto-play: %s\n", deviceSettings.alarm_auto_play ? "YES" : "NO");
+                settingsChanged = true;
+            }
+        }
+
+        if (doc.containsKey("temp_enabled")) {
+            bool newTemp = doc["temp_enabled"];
+            if (deviceSettings.temp_enabled != newTemp) {
+                deviceSettings.temp_enabled = newTemp;
+                Serial.printf("[Settings] ✓ Temp sensor enabled: %s\n", deviceSettings.temp_enabled ? "YES" : "NO");
                 settingsChanged = true;
             }
         }
@@ -411,11 +474,44 @@ static void mqttCallback(char* topic, byte* payload, unsigned int length) {
     memcpy(message, payload, length);
     message[length] = '\0';
     
-    Serial.printf("[MQTT] Message on topic %s: %s\n", topic, message);
+    Serial.println("\n========================================");
+    Serial.println("[MQTT] 📨 CALLBACK TRIGGERED!");
+    Serial.printf("[MQTT] Topic: %s\n", topic);
+    Serial.printf("[MQTT] Payload length: %d\n", length);
+    Serial.printf("[MQTT] Message: %s\n", message);
+    Serial.println("========================================");
     
     // Parse command topic and handle accordingly
-    if (strncmp(topic, "doorbell/cmd/", 13) == 0) {
+    // Check for explicit topics first
+    if (strcmp(topic, "doorbell/cmd/settings") == 0) {
+        Serial.println("[MQTT] ⚙️ Settings sync command detected (Explicit Topic)");
         mqttHandleCommandPayload(message);
+    }
+    else if (strcmp(topic, "doorbell/cmd/siren") == 0) {
+        Serial.println("[MQTT] 🚨 Siren command detected (Explicit Topic)");
+        mqttHandleCommandPayload(message);
+    }
+    else if (strncmp(topic, "doorbell/cmd/", 13) == 0) {
+        const char* cmdType = topic + 13; // Get command type after "doorbell/cmd/"
+        
+        Serial.printf("[MQTT] Command type: %s\n", cmdType);
+        
+        // Handle speak command separately
+        if (strcmp(cmdType, "speak") == 0) {
+            Serial.println("[MQTT] 🔊 Speak command detected");
+            mqttHandleSpeakCommand(message);
+        }
+        // Handle settings sync separately
+        else if (strcmp(cmdType, "settings") == 0) {
+            Serial.println("[MQTT] ⚙️ Settings sync command detected (Wildcard)");
+            mqttHandleCommandPayload(message);
+        }
+        // Handle other commands
+        else {
+            mqttHandleCommandPayload(message);
+        }
+    } else {
+        Serial.printf("[MQTT] ⚠️ Unknown topic pattern: %s\n", topic);
     }
 }
 
@@ -459,12 +555,38 @@ bool mqttReconnect() {
         Serial.println("\n✓✓✓ [MQTT] CONNECTION SUCCESSFUL! ✓✓✓");
         Serial.printf("[MQTT] Connection time: %lu ms\n", connectDuration);
         
-        // Subscribe to command topic
-        if (mqttClient.subscribe(MQTT_TOPIC_COMMAND)) {
-            Serial.printf("✓ [MQTT] Subscribed to %s\n", MQTT_TOPIC_COMMAND);
+        // Subscribe to command topics explicitly
+        // Wildcard subscription can sometimes be unreliable or filtered by broker policies
+        if (mqttClient.subscribe("doorbell/cmd/settings")) {
+            Serial.println("✓ [MQTT] Subscribed to doorbell/cmd/settings");
+        } else {
+            Serial.println("✗ [MQTT] Failed to subscribe to doorbell/cmd/settings");
+        }
+
+        if (mqttClient.subscribe("doorbell/cmd/siren")) {
+            Serial.println("✓ [MQTT] Subscribed to doorbell/cmd/siren");
         }
         
+        mqttClient.subscribe("doorbell/cmd/speak");
+        mqttClient.subscribe("doorbell/cmd/snapshot");
+        
+        // Removed wildcard subscription to avoid conflicts
+        // if (mqttClient.subscribe(MQTT_TOPIC_COMMAND)) { ... }
+        
+        Serial.println("✓ [MQTT] Subscribed to explicit topics");
+        
         Serial.println("✓ [MQTT] Connection established");
+        
+        // Request current settings from backend after reconnection
+        Serial.println("[MQTT] Requesting current settings from backend...");
+        delay(1000); // Wait for MQTT connection to stabilize
+        
+        if (mqttClient.publish("doorbell/cmd/request_settings", "{\"device_id\":\"ESP32_DOORBELL\",\"action\":\"request_settings\"}", false)) {
+            Serial.println("✓ [MQTT] Settings request sent on reconnection");
+        } else {
+            Serial.println("✗ [MQTT] Failed to send settings request on reconnection");
+        }
+        
         Serial.println("========================================\n");
         
         return true;

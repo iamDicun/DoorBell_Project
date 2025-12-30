@@ -13,8 +13,9 @@ void stopVoiceNoteRecording();
 void captureGuestPhoto();       // Button press -> doorbell/evt/button -> _button.jpg
 void captureSnapshotPhoto();    // Manual snapshot -> doorbell/evt/snapshot -> _snapshot.jpg
 void captureSecurityBurst();    // PIR burst -> doorbell/evt/pir_alert -> _pir_X.jpg
-void activateAlarm();
+void activateAlarm(int durationSeconds = 0);
 void deactivateAlarm();
+void handleAlarmTimer();
 
 // --- Audio & Speaker Features ---
 void startTwoWayAudio();

@@ -55,11 +55,30 @@ export const takeSnapshot = async () => {
 };
 
 export const sendAudioMessage = async (audioUrl, volume = 80) => {
-  const response = await api.post('/commands/speak', {
-    audio_url: audioUrl,
-    volume
-  });
-  return response.data;
+  console.log('🔊 [API] Sending audio message...');
+  console.log('📍 URL:', audioUrl);
+  console.log('🔉 Volume:', volume);
+  console.log('🌐 API Base:', API_BASE);
+  console.log('📤 Full endpoint:', `${API_BASE}/commands/speak`);
+  
+  try {
+    const payload = {
+      audio_url: audioUrl,
+      volume
+    };
+    console.log('📦 Payload:', JSON.stringify(payload, null, 2));
+    
+    const response = await api.post('/commands/speak', payload);
+    console.log('✅ [API] Response received:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ [API] Error:', error.message);
+    if (error.response) {
+      console.error('📄 Response status:', error.response.status);
+      console.error('📄 Response data:', error.response.data);
+    }
+    throw error;
+  }
 };
 
 export const toggleSiren = async (action, duration = 5) => {
@@ -77,7 +96,7 @@ export const getQuickResponses = async () => {
 };
 
 export const updateQuickResponse = async (title, audioUrl) => {
-  const response = await api.patch(`/quick-responses/${title}`, {
+  const response = await api.put(`/quick-responses/${title}`, {
     audio_url: audioUrl
   });
   return response.data;

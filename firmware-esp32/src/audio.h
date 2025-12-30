@@ -20,6 +20,7 @@ int16_t* getRecordBuffer();
 // Playback
 void playRecording();
 void playUploadedAudio();
+void stopPlayback();
 void playUrl(const char* url);
 bool isPlayingActive();
 
@@ -44,5 +45,10 @@ void processWebStream(uint8_t* payload, size_t length);
 
 // Test tone
 void playTestTone();
+
+// Sound indicators for voice recording
+void playRecordingStartTone();  // Middle tone
+void playRecordingSuccessTone(); // High tone
+void playRecordingErrorTone();   // Low tone
 
 #endif
