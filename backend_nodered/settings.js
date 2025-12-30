@@ -200,7 +200,7 @@ module.exports = {
      */
     httpNodeCors: {
        origin: "*",
-       methods: "GET,PUT,POST,DELETE"
+       methods: "GET,PUT,POST,PATCH,DELETE"
     },
 
     /** If you need to set an http proxy please set an environment variable

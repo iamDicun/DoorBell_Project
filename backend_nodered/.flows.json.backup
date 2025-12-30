@@ -320,12 +320,12 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 430,
+        "x": 490,
         "y": 1400,
         "wires": [
             [
                 "ce3e4277b0986455",
-                "b56f812c1433e2dc"
+                "d6994a03a3653bad"
             ],
             [
                 "869e6f35da0d5eef"
@@ -346,29 +346,9 @@
         "correl": "",
         "expiry": "",
         "broker": "0506134bb93b271d",
-        "x": 750,
-        "y": 1400,
+        "x": 1070,
+        "y": 1300,
         "wires": []
-    },
-    {
-        "id": "b56f812c1433e2dc",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": " Format Success Response",
-        "func": "// Node: Function - Format Speak Response\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    message: \"Audio playback command sent to ESP32\",\n    command_id: msg.commandId,\n    audio_url: msg.audioUrl,\n    volume: msg.volume,\n    timestamp: msg.timestamp\n};\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 760,
-        "y": 1480,
-        "wires": [
-            [
-                "ddc987ed11cbdfe1"
-            ]
-        ]
     },
     {
         "id": "ddc987ed11cbdfe1",
@@ -377,8 +357,8 @@
         "name": "Return Success",
         "statusCode": "",
         "headers": {},
-        "x": 1020,
-        "y": 1480,
+        "x": 1340,
+        "y": 1400,
         "wires": []
     },
     {
@@ -388,7 +368,7 @@
         "name": "Return Error",
         "statusCode": "",
         "headers": {},
-        "x": 710,
+        "x": 910,
         "y": 1560,
         "wires": []
     },
@@ -846,7 +826,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 970,
+        "x": 990,
         "y": 1060,
         "wires": [
             [
@@ -866,11 +846,231 @@
         "wires": []
     },
     {
+        "id": "d6994a03a3653bad",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": " Format Success Response",
+        "func": "// Node: Function - Format Speak Response\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    message: \"Audio playback command sent to ESP32\",\n    command_id: msg.commandId,\n    audio_url: msg.audioUrl,\n    volume: msg.volume,\n    timestamp: msg.timestamp\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1100,
+        "y": 1400,
+        "wires": [
+            [
+                "ddc987ed11cbdfe1"
+            ]
+        ]
+    },
+    {
+        "id": "get_quick_responses_http",
+        "type": "http in",
+        "z": "bd6bb11c58fb203e",
+        "name": "GET /api/quick-responses",
+        "url": "/api/quick-responses",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 180,
+        "y": 2900,
+        "wires": [
+            [
+                "build_quick_responses_query"
+            ]
+        ]
+    },
+    {
+        "id": "build_quick_responses_query",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Build Query",
+        "func": "// Query all active quick_responses, ordered by id\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/quick_responses?is_active=eq.true&order=id.asc';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 2900,
+        "wires": [
+            [
+                "query_quick_responses_db"
+            ]
+        ]
+    },
+    {
+        "id": "query_quick_responses_db",
+        "type": "http request",
+        "z": "bd6bb11c58fb203e",
+        "name": "Query Quick Responses",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 760,
+        "y": 2900,
+        "wires": [
+            [
+                "format_quick_responses_response"
+            ]
+        ]
+    },
+    {
+        "id": "format_quick_responses_response",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Format Response",
+        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        data = [];\n    }\n}\n\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    data: data\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1050,
+        "y": 2900,
+        "wires": [
+            [
+                "http_quick_responses_response"
+            ]
+        ]
+    },
+    {
+        "id": "http_quick_responses_response",
+        "type": "http response",
+        "z": "bd6bb11c58fb203e",
+        "name": "Return Quick Responses",
+        "statusCode": "",
+        "headers": {},
+        "x": 1330,
+        "y": 2900,
+        "wires": []
+    },
+    {
+        "id": "patch_quick_response_http",
+        "type": "http in",
+        "z": "bd6bb11c58fb203e",
+        "name": "PATCH /api/quick-responses/:title",
+        "url": "/api/quick-responses/:title",
+        "method": "patch",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 180,
+        "y": 3100,
+        "wires": [
+            [
+                "validate_patch_quick_response"
+            ]
+        ]
+    },
+    {
+        "id": "validate_patch_quick_response",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Validate & Prepare Update",
+        "func": "const title = msg.req.params.title;\nconst payload = msg.payload;\n\n// Validate title\nconst allowedTitles = ['wait', 'notHome', 'busy', 'package'];\nif (!title || !allowedTitles.includes(title)) {\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Invalid title\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"title\",\n            message: \"title must be one of: wait, notHome, busy, package\"\n        }\n    };\n    return [null, msg];\n}\n\n// Validate audio_url\nif (!payload.audio_url || typeof payload.audio_url !== 'string') {\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Validation failed\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"audio_url\",\n            message: \"audio_url is required and must be a string\"\n        }\n    };\n    return [null, msg];\n}\n\n// Prepare update\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/quick_responses?title=eq.' + title;\nmsg.method = 'PATCH';\nmsg.payload = {\n    audio_url: payload.audio_url,\n    created_at: new Date().toISOString()\n};\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nmsg.titleParam = title;\n\nreturn [msg, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 3100,
+        "wires": [
+            [
+                "update_quick_response_db"
+            ],
+            [
+                "http_quick_response_error"
+            ]
+        ]
+    },
+    {
+        "id": "update_quick_response_db",
+        "type": "http request",
+        "z": "bd6bb11c58fb203e",
+        "name": "Update Quick Response",
+        "method": "use",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 870,
+        "y": 3080,
+        "wires": [
+            [
+                "format_update_response"
+            ]
+        ]
+    },
+    {
+        "id": "format_update_response",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Format Success Response",
+        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        data = [];\n    }\n}\n\nif (Array.isArray(data) && data.length > 0) {\n    msg.statusCode = 200;\n    msg.payload = {\n        success: true,\n        message: \"Quick response updated successfully\",\n        data: data[0]\n    };\n} else {\n    msg.statusCode = 404;\n    msg.payload = {\n        success: false,\n        error: \"Quick response not found\",\n        code: \"NOT_FOUND\"\n    };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1170,
+        "y": 3080,
+        "wires": [
+            [
+                "http_quick_response_success"
+            ]
+        ]
+    },
+    {
+        "id": "http_quick_response_success",
+        "type": "http response",
+        "z": "bd6bb11c58fb203e",
+        "name": "Return Success",
+        "statusCode": "",
+        "headers": {},
+        "x": 1430,
+        "y": 3080,
+        "wires": []
+    },
+    {
+        "id": "http_quick_response_error",
+        "type": "http response",
+        "z": "bd6bb11c58fb203e",
+        "name": "Return Error",
+        "statusCode": "",
+        "headers": {},
+        "x": 830,
+        "y": 3180,
+        "wires": []
+    },
+    {
         "id": "mqtt_pir_in",
         "type": "mqtt in",
         "z": "e38e81b07fd63314",
-        "name": "PIR Motion Event",
-        "topic": "doorbell/evt/pir",
+        "name": "PIR High Alert (Burst)",
+        "topic": "doorbell/evt/pir_alert",
         "qos": "1",
         "datatype": "json",
         "broker": "0506134bb93b271d",
@@ -932,8 +1132,16 @@
         "id": "debug_pir",
         "type": "debug",
         "z": "e38e81b07fd63314",
-        "name": "PIR DB Response",
-        "x": 810,
+        "name": "💾 PIR DB Response",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 830,
         "y": 160,
         "wires": []
     },
@@ -991,7 +1199,15 @@
         "id": "debug_motion",
         "type": "debug",
         "z": "e38e81b07fd63314",
-        "name": "Motion Log Response",
+        "name": "💾 Motion DB Response",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
         "x": 830,
         "y": 380,
         "wires": []
@@ -1100,7 +1316,7 @@
         "type": "function",
         "z": "a7b8c9d0e1f2g3h4",
         "name": "Prepare Sensor Insert",
-        "func": "const payload = msg.payload;\n\nif (!payload.value || !payload.timestamp) {\n    node.warn('Invalid sensor payload');\n    return null;\n}\n\nmsg.payload = {\n    sensor_type: 'temperature',\n    temperature: payload.value,\n    humidity: null,\n    created_at: new Date(payload.timestamp * 1000).toISOString(),\n    metadata: {\n        device_id: payload.device_id || 'ESP32_DOORBELL',\n        raw_timestamp: payload.timestamp,\n        unit: payload.unit || 'C'\n    }\n};\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn msg;",
+        "func": "const payload = msg.payload;\n\n// Handle both formats:\n// doorbell/sensor/temp: {value: 31.5, unit: \"C\", device_id: ..., timestamp: ...}\n// doorbell/telemetry: {temperature: 29.95, motion: false}\nconst temperature = payload.value || payload.temperature;\nconst timestamp = payload.timestamp || Math.floor(Date.now() / 1000);\n\nif (!temperature) {\n    node.warn('Invalid sensor payload: missing temperature/value');\n    return null;\n}\n\nmsg.payload = {\n    sensor_type: 'temperature',\n    temperature: temperature,\n    humidity: null,\n    created_at: new Date(timestamp * 1000).toISOString(),\n    metadata: {\n        device_id: payload.device_id || 'ESP32_DOORBELL',\n        raw_timestamp: timestamp,\n        unit: payload.unit || 'C'\n    }\n};\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -1110,7 +1326,8 @@
         "y": 160,
         "wires": [
             [
-                "insert_sensor_db"
+                "insert_sensor_db",
+                "debug_sensor_payload"
             ]
         ]
     },
@@ -1142,12 +1359,13 @@
         "id": "debug_sensor",
         "type": "debug",
         "z": "a7b8c9d0e1f2g3h4",
-        "name": "Sensor DB Response",
+        "name": "💾 Sensor DB Response",
         "active": true,
         "tosidebar": true,
-        "console": false,
+        "console": true,
         "tostatus": false,
-        "complete": "false",
+        "complete": "true",
+        "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
         "x": 870,
@@ -1242,6 +1460,23 @@
         "headers": {},
         "x": 1100,
         "y": 320,
+        "wires": []
+    },
+    {
+        "id": "debug_sensor_payload",
+        "type": "debug",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "➡️ Sensor Payload",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 620,
+        "y": 100,
         "wires": []
     }
 ]

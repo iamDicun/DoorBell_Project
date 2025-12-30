@@ -10,6 +10,7 @@
 #include "camera_service.h"
 #include "sensor_utils.h"
 #include "doorbell_features.h"
+#include "web_server.h"
 #include <SPIFFS.h>
 
 // Sensor reading intervals
@@ -104,14 +105,29 @@ void doorbellSetup() {
         Serial.println("[ERR] Speaker init failed");
     }
 
+    // Initialize WiFi and Web Server
+    Serial.println("\n[INIT] Starting WiFi...");
+    if (!initWiFi()) {
+        Serial.println("[ERR] ❌ WiFi connection failed!");
+        Serial.println("[WARN] Web server and MQTT will not work without WiFi");
+    } else {
+        Serial.println("[WiFi] ✓ Connected successfully");
+        
+        // Setup Web Server
+        Serial.println("[INIT] Starting Web Server...");
+        setupWebServer();
+        Serial.println("[WebServer] ✓ HTTP server running on port 80");
+        Serial.println("[WebServer] ✓ WebSocket server running on port 81");
+    }
+
     mqttServiceInit();
     eventManagerInit();
     audioServiceInit();
     cameraServiceInit();
 
     Serial.println("\n╔════════════════════════════════════════╗");
-    Serial.println("║   BUTTON TEST MODE - MQTT DISABLED     ║");
-    Serial.println("║   Press button to see events           ║");
+    Serial.println("║   DOORBELL READY                       ║");
+    Serial.println("║   All services initialized             ║");
     Serial.println("╚════════════════════════════════════════╝\n");
 }
 
@@ -123,6 +139,9 @@ void doorbellLoop() {
         Serial.printf("\n[LOOP] Iteration: %lu | Free heap: %u bytes | Uptime: %lu s\n",
                      loopCounter, ESP.getFreeHeap(), millis() / 1000);
     }
+    
+    // Handle Web Server & WebSocket
+    webSocket.loop();
     
     mqttServiceLoop();
     eventManagerLoop();

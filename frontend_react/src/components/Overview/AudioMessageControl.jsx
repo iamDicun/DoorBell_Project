@@ -1,22 +1,46 @@
-import React, { useState, useRef } from 'react';
-import { Mic, Send } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Mic, Send, Upload } from 'lucide-react';
 import './AudioMessageControl.css';
+import { getQuickResponses, updateQuickResponse, sendAudioMessage } from '../../lib/api';
+import { uploadAudio } from '../../lib/supabase';
 
 function AudioMessageControl({ onSendAudioMessage }) {
+  const [quickResponses, setQuickResponses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedMessage, setSelectedMessage] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordedAudio, setRecordedAudio] = useState(null);
-  const [recordingMessage, setRecordingMessage] = useState('');
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
-  const predefinedMessages = [
-    { id: 1, text: 'Vui lòng đợi', icon: '⏰' },
-    { id: 2, text: 'Tôi không có nhà', icon: '🏠' },
-    { id: 3, text: 'Tôi đang bận', icon: '📵' },
-    { id: 4, text: 'Để hàng ở cửa', icon: '📦' }
-  ];
+  // Message display mapping
+  const messageDisplay = {
+    wait: { text: 'Vui lòng đợi', icon: '⏰' },
+    notHome: { text: 'Tôi không có nhà', icon: '🏠' },
+    busy: { text: 'Tôi đang bận', icon: '📵' },
+    package: { text: 'Để hàng ở cửa', icon: '📦' }
+  };
 
-  const startRecording = async (messageText) => {
+  useEffect(() => {
+    fetchQuickResponses();
+  }, []);
+
+  const fetchQuickResponses = async () => {
+    try {
+      setLoading(true);
+      const response = await getQuickResponses();
+      if (response.success) {
+        setQuickResponses(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching quick responses:', error);
+      alert('Không thể tải danh sách tin nhắn!');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
@@ -29,13 +53,12 @@ function AudioMessageControl({ onSendAudioMessage }) {
       mediaRecorderRef.current.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
         const audioUrl = URL.createObjectURL(audioBlob);
-        setRecordedAudio({ blob: audioBlob, url: audioUrl, message: messageText });
+        setRecordedAudio({ blob: audioBlob, url: audioUrl });
         stream.getTracks().forEach(track => track.stop());
       };
 
       mediaRecorderRef.current.start();
       setIsRecording(true);
-      setRecordingMessage(messageText);
     } catch (err) {
       console.error('Error accessing microphone:', err);
       alert('Không thể truy cập microphone!');
@@ -49,74 +72,173 @@ function AudioMessageControl({ onSendAudioMessage }) {
     }
   };
 
-  const handlePredefinedMessage = (message) => {
-    if (isRecording) {
-      stopRecording();
-    } else {
-      startRecording(message.text);
+  const handleSelectMessage = (message) => {
+    setSelectedMessage(message);
+    setRecordedAudio(null); // Clear previous recording
+  };
+
+  const handleUploadRecording = async () => {
+    if (!recordedAudio || !selectedMessage) return;
+
+    try {
+      setLoading(true);
+      
+      // Upload to Supabase Storage
+      const timestamp = Date.now();
+      const fileName = `${selectedMessage.title}_${timestamp}.wav`;
+      const audioUrl = await uploadAudio(recordedAudio.blob, fileName);
+
+      // Update quick_response in database
+      const updateResponse = await updateQuickResponse(selectedMessage.title, audioUrl);
+      
+      if (updateResponse.success) {
+        alert('Cập nhật ghi âm thành công!');
+        // Refresh quick responses
+        await fetchQuickResponses();
+        setRecordedAudio(null);
+      }
+    } catch (error) {
+      console.error('Error uploading audio:', error);
+      alert('Không thể cập nhật ghi âm!');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSendAudio = () => {
-    if (recordedAudio) {
-      onSendAudioMessage('recorded', recordedAudio);
-      setRecordedAudio(null);
+  const handleSendAudio = async () => {
+    if (!selectedMessage) {
+      alert('Vui lòng chọn một tin nhắn!');
+      return;
+    }
+
+    if (!selectedMessage.audio_url) {
+      alert('Tin nhắn này chưa có ghi âm. Vui lòng ghi âm trước!');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await sendAudioMessage(selectedMessage.audio_url, 80);
+      
+      if (response.success) {
+        alert('Đã gửi tin nhắn audio đến chuông cửa!');
+        if (onSendAudioMessage) {
+          onSendAudioMessage('predefined', selectedMessage);
+        }
+      }
+    } catch (error) {
+      console.error('Error sending audio:', error);
+      alert('Không thể gửi tin nhắn audio!');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleCancelAudio = () => {
+  const handleCancelRecording = () => {
     if (recordedAudio) {
       URL.revokeObjectURL(recordedAudio.url);
       setRecordedAudio(null);
     }
   };
 
+  if (loading && quickResponses.length === 0) {
+    return <div className="audio-message-control">Đang tải...</div>;
+  }
+
   return (
     <div className="audio-message-control">
       <h3>Gửi Tin Nhắn Audio</h3>
       
       <div className="predefined-messages">
-        <h4>Giữ nút để ghi âm:</h4>
+        <h4>Chọn tin nhắn:</h4>
         <div className="message-grid">
-          {predefinedMessages.map(msg => (
-            <button
-              key={msg.id}
-              className={`message-button ${isRecording && recordingMessage === msg.text ? 'recording' : ''}`}
-              onMouseDown={() => handlePredefinedMessage(msg)}
-              onMouseUp={stopRecording}
-              onMouseLeave={stopRecording}
-              onTouchStart={() => handlePredefinedMessage(msg)}
-              onTouchEnd={stopRecording}
-            >
-              <span className="message-icon">{msg.icon}</span>
-              <span className="message-text">{msg.text}</span>
-              {isRecording && recordingMessage === msg.text && (
-                <Mic className="recording-icon" size={16} />
-              )}
-            </button>
-          ))}
+          {quickResponses.map(msg => {
+            const display = messageDisplay[msg.title] || { text: msg.title, icon: '🔔' };
+            const hasAudio = msg.audio_url && msg.audio_url.trim() !== '';
+            const isSelected = selectedMessage?.id === msg.id;
+            
+            return (
+              <button
+                key={msg.id}
+                className={`message-button ${isSelected ? 'selected' : ''} ${!hasAudio ? 'no-audio' : ''}`}
+                onClick={() => handleSelectMessage(msg)}
+                disabled={loading}
+              >
+                <span className="message-icon">{display.icon}</span>
+                <span className="message-text">{display.text}</span>
+                {!hasAudio && <span className="no-audio-badge">🎤 Chưa ghi âm</span>}
+                {hasAudio && <span className="has-audio-badge">✅</span>}
+              </button>
+            );
+          })}
         </div>
-        {isRecording && (
-          <p className="recording-hint">🔴 Đang ghi âm... Thả nút để dừng</p>
-        )}
       </div>
 
-      {recordedAudio && (
-        <div className="recorded-audio">
-          <h4>File ghi âm: "{recordedAudio.message}"</h4>
-          <div className="audio-player">
-            <audio controls src={recordedAudio.url}>
-              Trình duyệt không hỗ trợ phát audio.
-            </audio>
+      {selectedMessage && (
+        <div className="selected-message-actions">
+          <h4>Tin nhắn: {messageDisplay[selectedMessage.title]?.text || selectedMessage.title}</h4>
+          
+          <div className="recording-section">
+            {!isRecording && !recordedAudio && (
+              <button 
+                className="record-button" 
+                onClick={startRecording}
+                disabled={loading}
+              >
+                <Mic size={20} />
+                <span>Ghi âm mới</span>
+              </button>
+            )}
+            
+            {isRecording && (
+              <div className="recording-active">
+                <button className="stop-recording-button" onClick={stopRecording}>
+                  🔴 Đang ghi... (Click để dừng)
+                </button>
+              </div>
+            )}
+            
+            {recordedAudio && (
+              <div className="recorded-audio">
+                <h5>File ghi âm mới:</h5>
+                <div className="audio-player">
+                  <audio controls src={recordedAudio.url}>
+                    Trình duyệt không hỗ trợ phát audio.
+                  </audio>
+                </div>
+                <div className="audio-actions">
+                  <button 
+                    className="upload-audio-button" 
+                    onClick={handleUploadRecording}
+                    disabled={loading}
+                  >
+                    <Upload size={20} />
+                    <span>Lưu ghi âm này</span>
+                  </button>
+                  <button 
+                    className="cancel-audio-button" 
+                    onClick={handleCancelRecording}
+                    disabled={loading}
+                  >
+                    Hủy
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="audio-actions">
-            <button className="send-audio-button" onClick={handleSendAudio}>
+
+          <div className="send-section">
+            <button 
+              className="send-audio-button" 
+              onClick={handleSendAudio}
+              disabled={loading || !selectedMessage.audio_url}
+            >
               <Send size={20} />
-              <span>Phát file ghi âm này</span>
+              <span>Phát tin nhắn này qua loa</span>
             </button>
-            <button className="cancel-audio-button" onClick={handleCancelAudio}>
-              Hủy
-            </button>
+            {!selectedMessage.audio_url && (
+              <p className="warning-text">⚠️ Cần ghi âm trước khi gửi</p>
+            )}
           </div>
         </div>
       )}

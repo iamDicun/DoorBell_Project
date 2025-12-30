@@ -7,6 +7,7 @@
 #include "audio_service.h"
 #include "doorbell_features.h"
 #include <ArduinoJson.h>
+#include <time.h>
 
 static WiFiClientSecure secureClient;
 static PubSubClient mqttClient(secureClient);
@@ -15,9 +16,24 @@ static unsigned long lastReconnectAttempt = 0;
 static char deviceId[32];
 static int reconnectCount = 0;
 
+// Device settings (synced from database via MQTT)
+static DeviceSettings deviceSettings = {
+    .alarm_enabled = false,
+    .do_not_disturb = false,
+    .speaker_volume = 75,
+    .pir_enabled = true,
+    .notifications_enabled = true,
+    .alarm_auto_play = true
+};
+
 // Helper functions
 unsigned long getTimestamp() {
-    return millis() / 1000; // Unix-like timestamp in seconds (uptime-based)
+    time_t now = time(nullptr);
+    if (now < 1000000000) {
+        // Time not synced yet, return 0 as fallback
+        return 0;
+    }
+    return (unsigned long)now;
 }
 
 const char* getDeviceId() {
@@ -25,6 +41,10 @@ const char* getDeviceId() {
         snprintf(deviceId, sizeof(deviceId), "ESP32_%08X", (uint32_t)ESP.getEfuseMac());
     }
     return deviceId;
+}
+
+const DeviceSettings& getDeviceSettings() {
+    return deviceSettings;
 }
 
 // Forward declaration
@@ -86,6 +106,32 @@ void mqttServiceInit() {
     Serial.printf("  RSSI        : %d dBm\n", WiFi.RSSI());
     Serial.println("----------------------------------------");
     
+    // Initialize NTP time sync
+    Serial.println("\n[TIME] Syncing time with NTP server...");
+    configTime(7 * 3600, 0, "pool.ntp.org", "time.nist.gov"); // GMT+7 for Vietnam
+    
+    int ntpRetries = 0;
+    while (time(nullptr) < 1000000000 && ntpRetries < 20) {
+        delay(500);
+        Serial.print(".");
+        ntpRetries++;
+    }
+    Serial.println();
+    
+    time_t now = time(nullptr);
+    if (now > 1000000000) {
+        struct tm timeinfo;
+        localtime_r(&now, &timeinfo);
+        Serial.println("✓ [TIME] NTP sync successful!");
+        Serial.printf("  Current time: %04d-%02d-%02d %02d:%02d:%02d\n",
+                     timeinfo.tm_year + 1900, timeinfo.tm_mon + 1, timeinfo.tm_mday,
+                     timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+        Serial.printf("  Unix timestamp: %lu\n", now);
+    } else {
+        Serial.println("✗ [TIME] NTP sync failed (will use uptime as fallback)");
+    }
+    Serial.println("----------------------------------------");
+    
     // Test DNS resolution
     Serial.println("\n[MQTT] Testing DNS resolution...");
     Serial.printf("[MQTT] Broker hostname: %s\n", MQTT_BROKER);
@@ -118,6 +164,11 @@ void mqttServiceInit() {
     Serial.println("\n[MQTT] Attempting initial connection...");
     if (mqttReconnect()) {
         Serial.println("✓ [MQTT] CONNECTED TO HIVEMQ!");
+        
+        // Request settings sync from Node-RED
+        Serial.println("[Settings] Requesting settings from server...");
+        mqttPublishJson("doorbell/cmd/request_settings", "{\"device_id\":\"ESP32\",\"action\":\"get_settings\"}");
+        
         Serial.println("========================================\n");
     } else {
         Serial.println("✗ [MQTT] INITIAL CONNECTION FAILED");
@@ -186,8 +237,8 @@ void mqttHandleCommandPayload(const char* jsonPayload) {
     }
     // Capture photo - Luong 5: Remote snapshot
     else if (strcmp(action, "capture") == 0) {
-        Serial.println("[MQTT] Command: Capture photo");
-        captureGuestPhoto();
+        Serial.println("[MQTT] Command: Capture snapshot");
+        captureSnapshotPhoto();
     }
     // Legacy command handlers (kept for compatibility)
     else if (strcmp(action, "play_chime") == 0) {
@@ -216,6 +267,79 @@ void mqttHandleCommandPayload(const char* jsonPayload) {
     }
     else if (strcmp(action, "capture_burst") == 0) {
         captureSecurityBurst();
+    }
+    else if (strcmp(action, "sync_settings") == 0) {
+        // Settings sync from Node-RED
+        Serial.println("\n========================================");
+        Serial.println("[SETTINGS] 🔄 Syncing settings from server...");
+        Serial.println("========================================");
+        
+        bool settingsChanged = false;
+        
+        // Update settings from payload
+        if (doc.containsKey("speaker_volume")) {
+            int newVolume = doc["speaker_volume"];
+            if (deviceSettings.speaker_volume != newVolume) {
+                deviceSettings.speaker_volume = newVolume;
+                // Apply volume immediately
+                float volumeNormalized = deviceSettings.speaker_volume / 100.0f;
+                setVolumeLevel(volumeNormalized);
+                Serial.printf("[Settings] ✓ Speaker volume: %d%% (applied)\n", deviceSettings.speaker_volume);
+                settingsChanged = true;
+            }
+        }
+        
+        if (doc.containsKey("pir_enabled")) {
+            bool newPir = doc["pir_enabled"];
+            if (deviceSettings.pir_enabled != newPir) {
+                deviceSettings.pir_enabled = newPir;
+                Serial.printf("[Settings] ✓ PIR enabled: %s\n", deviceSettings.pir_enabled ? "YES" : "NO");
+                settingsChanged = true;
+            }
+        }
+        
+        if (doc.containsKey("alarm_enabled")) {
+            bool newAlarm = doc["alarm_enabled"];
+            if (deviceSettings.alarm_enabled != newAlarm) {
+                deviceSettings.alarm_enabled = newAlarm;
+                Serial.printf("[Settings] ✓ Alarm enabled: %s\n", deviceSettings.alarm_enabled ? "YES" : "NO");
+                settingsChanged = true;
+            }
+        }
+        
+        if (doc.containsKey("notifications_enabled")) {
+            bool newNotif = doc["notifications_enabled"];
+            if (deviceSettings.notifications_enabled != newNotif) {
+                deviceSettings.notifications_enabled = newNotif;
+                Serial.printf("[Settings] ✓ Notifications enabled: %s\n", deviceSettings.notifications_enabled ? "YES" : "NO");
+                settingsChanged = true;
+            }
+        }
+        
+        if (doc.containsKey("do_not_disturb")) {
+            bool newDnd = doc["do_not_disturb"];
+            if (deviceSettings.do_not_disturb != newDnd) {
+                deviceSettings.do_not_disturb = newDnd;
+                Serial.printf("[Settings] ✓ Do Not Disturb: %s\n", deviceSettings.do_not_disturb ? "YES" : "NO");
+                settingsChanged = true;
+            }
+        }
+        
+        if (doc.containsKey("alarm_auto_play")) {
+            bool newAutoPlay = doc["alarm_auto_play"];
+            if (deviceSettings.alarm_auto_play != newAutoPlay) {
+                deviceSettings.alarm_auto_play = newAutoPlay;
+                Serial.printf("[Settings] ✓ Alarm auto-play: %s\n", deviceSettings.alarm_auto_play ? "YES" : "NO");
+                settingsChanged = true;
+            }
+        }
+        
+        if (settingsChanged) {
+            Serial.println("[Settings] 🎯 Settings applied successfully!");
+        } else {
+            Serial.println("[Settings] ℹ️  No changes - settings already up to date");
+        }
+        Serial.println("========================================\n");
     }
     else {
         Serial.printf("[MQTT] Unknown action: %s\n", action);

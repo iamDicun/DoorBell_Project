@@ -11,6 +11,7 @@ function OverviewTab({
   notificationEnabled,
   onToggleNotification,
   temperature,
+  temperatureTimestamp,
   sensors,
   onToggleSensor,
   onSnapshot,
@@ -35,7 +36,10 @@ function OverviewTab({
         onToggleAlarm={onToggleAlarm}
       />
       
-      <TemperatureDisplay temperature={temperature} />
+      <TemperatureDisplay 
+        temperature={temperature} 
+        lastUpdate={temperatureTimestamp}
+      />
       
       <SensorManagement 
         sensors={sensors} 

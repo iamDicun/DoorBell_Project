@@ -70,4 +70,17 @@ export const toggleSiren = async (action, duration = 5) => {
   return response.data;
 };
 
+// Quick Responses API
+export const getQuickResponses = async () => {
+  const response = await api.get('/quick-responses');
+  return response.data;
+};
+
+export const updateQuickResponse = async (title, audioUrl) => {
+  const response = await api.patch(`/quick-responses/${title}`, {
+    audio_url: audioUrl
+  });
+  return response.data;
+};
+
 export default api;

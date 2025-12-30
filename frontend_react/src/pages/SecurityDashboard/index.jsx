@@ -22,6 +22,7 @@ function SecurityDashboard() {
     { id: 2, name: 'Cảm biến nhiệt độ', type: 'temperature', enabled: true }
   ]);
   const [temperature, setTemperature] = useState(0);
+  const [temperatureTimestamp, setTemperatureTimestamp] = useState(null);
   const [isLoadingSensor, setIsLoadingSensor] = useState(false);
   const [volume, setVolume] = useState(70);
   const [isPushToTalk, setIsPushToTalk] = useState(false);
@@ -32,6 +33,43 @@ function SecurityDashboard() {
   const [logFilter, setLogFilter] = useState({ date: '', type: 'all' });
   const [voicemails, setVoicemails] = useState([]);
   const [isLoadingVoicemails, setIsLoadingVoicemails] = useState(false);
+  const [isLoadingSettings, setIsLoadingSettings] = useState(false);
+
+  // Fetch settings from device_settings table
+  useEffect(() => {
+    const fetchSettings = async () => {
+      setIsLoadingSettings(true);
+      try {
+        const response = await axios.get('http://localhost:1880/api/settings');
+        console.log('[Settings] API Response:', response.data);
+        
+        if (response.data.success && response.data.data && response.data.data.length > 0) {
+          const settings = response.data.data[0];
+          
+          // Update UI state from database
+          setIsAlarmActive(settings.alarm_enabled || false);
+          setVolume(settings.speaker_volume || 70);
+          setNotificationEnabled(settings.do_not_disturb || false);
+          
+          // Update sensors state (PIR enabled)
+          setSensors(prevSensors => prevSensors.map(s => {
+            if (s.type === 'motion') {
+              return { ...s, enabled: settings.pir_enabled !== false };
+            }
+            return s;
+          }));
+          
+          console.log('[Settings] Loaded settings:', settings);
+        }
+      } catch (error) {
+        console.error('[Settings] Error fetching settings:', error);
+      } finally {
+        setIsLoadingSettings(false);
+      }
+    };
+
+    fetchSettings();
+  }, []);
 
   // Fetch events from Node-RED API (chỉ load 1 lần)
   useEffect(() => {
@@ -250,6 +288,7 @@ function SecurityDashboard() {
         if (response.data.success && response.data.data) {
           // sensor_logs table has 'temperature' field, not 'value'
           setTemperature(response.data.data.temperature);
+          setTemperatureTimestamp(response.data.data.created_at);
         }
       } catch (error) {
         console.error('Error fetching sensor data:', error);
@@ -259,21 +298,58 @@ function SecurityDashboard() {
     };
 
     fetchSensorData();
+    // Poll every 60 seconds for new data
+    const interval = setInterval(fetchSensorData, 60000);
+    return () => clearInterval(interval);
   }, []);
+
+  // Helper function to update settings in database
+  const updateSettings = async (settingsUpdate) => {
+    try {
+      console.log('[Settings] Updating settings:', settingsUpdate);
+      const response = await axios.put('http://localhost:1880/api/settings', settingsUpdate);
+      
+      if (response.data.success) {
+        console.log('[Settings] Update successful:', response.data);
+        return true;
+      } else {
+        console.error('[Settings] Update failed:', response.data);
+        return false;
+      }
+    } catch (error) {
+      console.error('[Settings] Error updating settings:', error);
+      return false;
+    }
+  };
 
   // Event handlers
   const handleSnapshot = () => {
     alert('Đã chụp ảnh! Ảnh sẽ được lưu vào thư viện.');
   };
 
-  const toggleSensor = (id) => {
-    setSensors(sensors.map(s => s.id === id ? {...s, enabled: !s.enabled} : s));
+  const toggleSensor = async (id) => {
+    const sensor = sensors.find(s => s.id === id);
+    const newEnabled = !sensor.enabled;
+    
+    // Update UI immediately
+    setSensors(sensors.map(s => s.id === id ? {...s, enabled: newEnabled} : s));
+    
+    // Save to database if it's PIR sensor
+    if (sensor.type === 'motion') {
+      await updateSettings({ pir_enabled: newEnabled });
+    }
   };
 
-  const handleToggleAlarm = () => {
-    setIsAlarmActive(!isAlarmActive);
-    // Send MQTT command: doorbell/cmd/siren
-    console.log('Toggle alarm:', !isAlarmActive ? 'ON' : 'OFF');
+  const handleToggleAlarm = async () => {
+    const newAlarmState = !isAlarmActive;
+    
+    // Update UI immediately
+    setIsAlarmActive(newAlarmState);
+    
+    // Save to database (this will trigger MQTT sync in Node-RED)
+    await updateSettings({ alarm_enabled: newAlarmState });
+    
+    console.log('[Settings] Alarm toggled:', newAlarmState ? 'ON' : 'OFF');
   };
 
   const handleSendAudioMessage = async (messageType, content) => {
@@ -334,6 +410,27 @@ function SecurityDashboard() {
     alert('Đang kích hoạt cảnh báo... (Chức năng sẽ được thêm sau)');
   };
 
+  const handleToggleNotification = async () => {
+    const newState = !notificationEnabled;
+    
+    // Update UI immediately
+    setNotificationEnabled(newState);
+    
+    // Save to database
+    await updateSettings({ do_not_disturb: newState });
+  };
+
+  const handleVolumeChange = async (newVolume) => {
+    // Update UI immediately
+    setVolume(newVolume);
+    
+    // Debounce API calls - only save after user stops dragging
+    if (window.volumeTimeout) clearTimeout(window.volumeTimeout);
+    window.volumeTimeout = setTimeout(async () => {
+      await updateSettings({ speaker_volume: parseInt(newVolume) });
+    }, 500);
+  };
+
   const tabs = [
     { id: 'overview', label: 'Tổng quan' },
     { id: 'alerts', label: 'Báo động' },
@@ -365,8 +462,9 @@ function SecurityDashboard() {
         {activeTab === 'overview' && (
           <OverviewTab
             notificationEnabled={notificationEnabled}
-            onToggleNotification={() => setNotificationEnabled(!notificationEnabled)}
+            onToggleNotification={handleToggleNotification}
             temperature={temperature}
+            temperatureTimestamp={temperatureTimestamp}
             sensors={sensors}
             onToggleSensor={toggleSensor}
             onSnapshot={handleSnapshot}
@@ -374,7 +472,7 @@ function SecurityDashboard() {
             onPushToTalkStart={() => setIsPushToTalk(true)}
             onPushToTalkEnd={() => setIsPushToTalk(false)}
             volume={volume}
-            onVolumeChange={setVolume}
+            onVolumeChange={handleVolumeChange}
             isAlarmActive={isAlarmActive}
             onToggleAlarm={handleToggleAlarm}
             onSendAudioMessage={handleSendAudioMessage}

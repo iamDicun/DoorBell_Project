@@ -325,7 +325,7 @@
         "wires": [
             [
                 "ce3e4277b0986455",
-                "b56f812c1433e2dc"
+                "d6994a03a3653bad"
             ],
             [
                 "869e6f35da0d5eef"
@@ -351,34 +351,14 @@
         "wires": []
     },
     {
-        "id": "b56f812c1433e2dc",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": " Format Success Response",
-        "func": "// Node: Function - Format Speak Response\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    message: \"Audio playback command sent to ESP32\",\n    command_id: msg.commandId,\n    audio_url: msg.audioUrl,\n    volume: msg.volume,\n    timestamp: msg.timestamp\n};\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 960,
-        "y": 1480,
-        "wires": [
-            [
-                "76e9c0bf826a57a2"
-            ]
-        ]
-    },
-    {
         "id": "ddc987ed11cbdfe1",
         "type": "http response",
         "z": "bd6bb11c58fb203e",
         "name": "Return Success",
         "statusCode": "",
         "headers": {},
-        "x": 2000,
-        "y": 1480,
+        "x": 1340,
+        "y": 1400,
         "wires": []
     },
     {
@@ -626,18 +606,174 @@
         "z": "bd6bb11c58fb203e",
         "name": "Return Settings",
         "statusCode": "",
-        "headers": {},
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
         "x": 1300,
         "y": 2340,
+        "wires": []
+    },
+    {
+        "id": "esp32_settings_request_mqtt",
+        "type": "mqtt in",
+        "z": "bd6bb11c58fb203e",
+        "name": "ESP32 Settings Request",
+        "topic": "doorbell/cmd/request_settings",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "0506134bb93b271d",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 2240,
+        "wires": [
+            [
+                "fetch_settings_for_esp32"
+            ]
+        ]
+    },
+    {
+        "id": "fetch_settings_for_esp32",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Build Settings Query",
+        "func": "msg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 450,
+        "y": 2240,
+        "wires": [
+            [
+                "query_settings_for_esp32"
+            ]
+        ]
+    },
+    {
+        "id": "query_settings_for_esp32",
+        "type": "http request",
+        "z": "bd6bb11c58fb203e",
+        "name": "Get Settings from DB",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 740,
+        "y": 2240,
+        "wires": [
+            [
+                "prepare_mqtt_settings_sync"
+            ]
+        ]
+    },
+    {
+        "id": "prepare_mqtt_settings_sync",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Format Settings for ESP32",
+        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        return null;\n    }\n}\n\nconst settings = Array.isArray(data) ? data[0] : data;\nif (!settings) {\n    return null;\n}\n\nmsg.payload = {\n    action: 'sync_settings',\n    speaker_volume: settings.speaker_volume || 75,\n    pir_enabled: settings.pir_enabled !== false,\n    alarm_enabled: settings.alarm_enabled || false,\n    notifications_enabled: settings.notifications_enabled !== false,\n    do_not_disturb: settings.do_not_disturb || false,\n    alarm_auto_play: settings.alarm_auto_play !== false,\n    timestamp: Math.floor(Date.now() / 1000)\n};\n\nmsg.topic = 'doorbell/cmd/settings';\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1020,
+        "y": 2240,
+        "wires": [
+            [
+                "send_settings_to_esp32"
+            ]
+        ]
+    },
+    {
+        "id": "send_settings_to_esp32",
+        "type": "mqtt out",
+        "z": "bd6bb11c58fb203e",
+        "name": "Send Settings to ESP32",
+        "topic": "",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "0506134bb93b271d",
+        "x": 1310,
+        "y": 2240,
+        "wires": []
+    },
+    {
+        "id": "cors_settings_options",
+        "type": "http in",
+        "z": "bd6bb11c58fb203e",
+        "name": "OPTIONS /api/settings",
+        "url": "/api/settings",
+        "method": "options",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 200,
+        "y": 2420,
+        "wires": [
+            [
+                "cors_settings_response"
+            ]
+        ]
+    },
+    {
+        "id": "cors_settings_response",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "CORS Preflight",
+        "func": "msg.statusCode = 204;\nmsg.headers = {\n    'Access-Control-Allow-Origin': '*',\n    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',\n    'Access-Control-Allow-Headers': 'Content-Type'\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 2420,
+        "wires": [
+            [
+                "cors_settings_http_response"
+            ]
+        ]
+    },
+    {
+        "id": "cors_settings_http_response",
+        "type": "http response",
+        "z": "bd6bb11c58fb203e",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 690,
+        "y": 2420,
         "wires": []
     },
     {
         "id": "b67385382ab9ee2e",
         "type": "http in",
         "z": "bd6bb11c58fb203e",
-        "name": "PATCH /api/settings",
+        "name": "PUT /api/settings",
         "url": "/api/settings",
-        "method": "patch",
+        "method": "put",
         "upload": false,
         "skipBodyParsing": false,
         "swaggerDoc": "",
@@ -654,7 +790,7 @@
         "type": "function",
         "z": "bd6bb11c58fb203e",
         "name": " Validate & Prepare Update",
-        "func": "// Node: Function - Validate Settings Update\nconst payload = msg.payload;\n\n// Validate volume\nif (payload.speaker_volume !== undefined) {\n    if (payload.speaker_volume < 0 || payload.speaker_volume > 100) {\n        msg.statusCode = 400;\n        msg.payload = {\n            success: false,\n            error: \"Validation failed\",\n            code: \"VALIDATION_ERROR\",\n            details: {\n                field: \"speaker_volume\",\n                message: \"speaker_volume must be between 0 and 100\"\n            }\n        };\n        return [null, msg]; // Error output\n    }\n}\n\n// Build update object (only include provided fields)\nconst updateData = {\n    updated_at: new Date().toISOString()\n};\n\nif (payload.alarm_enabled !== undefined) updateData.alarm_enabled = payload.alarm_enabled;\nif (payload.speaker_volume !== undefined) updateData.speaker_volume = payload.speaker_volume;\nif (payload.do_not_disturb !== undefined) updateData.do_not_disturb = payload.do_not_disturb;\nif (payload.pir_enabled !== undefined) updateData.pir_enabled = payload.pir_enabled;\nif (payload.notifications_enabled !== undefined) updateData.notifications_enabled = payload.notifications_enabled;\n\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.method = 'PATCH';\nmsg.payload = updateData;\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn [msg, null];",
+        "func": "// Node: Function - Validate Settings Update\nconst payload = msg.payload;\n\n// Validate volume\nif (payload.speaker_volume !== undefined) {\n    if (payload.speaker_volume < 0 || payload.speaker_volume > 100) {\n        msg.statusCode = 400;\n        msg.payload = {\n            success: false,\n            error: \"Validation failed\",\n            code: \"VALIDATION_ERROR\",\n            details: {\n                field: \"speaker_volume\",\n                message: \"speaker_volume must be between 0 and 100\"\n            }\n        };\n        return [null, msg]; // Error output\n    }\n}\n\n// Build update object (only include provided fields)\nconst updateData = {\n    updated_at: new Date().toISOString()\n};\n\nif (payload.alarm_enabled !== undefined) updateData.alarm_enabled = payload.alarm_enabled;\nif (payload.speaker_volume !== undefined) updateData.speaker_volume = payload.speaker_volume;\nif (payload.do_not_disturb !== undefined) updateData.do_not_disturb = payload.do_not_disturb;\nif (payload.pir_enabled !== undefined) updateData.pir_enabled = payload.pir_enabled;\nif (payload.notifications_enabled !== undefined) updateData.notifications_enabled = payload.notifications_enabled;\n\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.method = 'PUT';\nmsg.payload = updateData;\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn [msg, null];",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -677,7 +813,7 @@
         "type": "function",
         "z": "bd6bb11c58fb203e",
         "name": "Prepare MQTT Sync",
-        "func": "// Node: Function - Prepare Settings MQTT\nlet data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        data = [];\n    }\n}\n\n// Get the updated settings\nconst settings = Array.isArray(data) ? data[0] : data;\n\n// Prepare MQTT payload for ESP32\nmsg.mqttPayload = {\n    speaker_volume: settings.speaker_volume,\n    pir_enabled: settings.pir_enabled,\n    alarm_enabled: settings.alarm_enabled,\n    notifications_enabled: settings.notifications_enabled,\n    do_not_disturb: settings.do_not_disturb,\n    timestamp: Math.floor(Date.now() / 1000)\n};\n\nmsg.topic = 'doorbell/cmd/settings';\nmsg.settingsData = settings; // Store for HTTP response\n\nreturn msg;",
+        "func": "// Node: Function - Prepare Settings MQTT\nlet data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        data = [];\n    }\n}\n\n// Get the updated settings\nconst settings = Array.isArray(data) ? data[0] : data;\n\n// Prepare MQTT payload for ESP32 with action field\nmsg.payload = {\n    action: 'sync_settings',\n    speaker_volume: settings.speaker_volume,\n    pir_enabled: settings.pir_enabled,\n    alarm_enabled: settings.alarm_enabled,\n    notifications_enabled: settings.notifications_enabled,\n    do_not_disturb: settings.do_not_disturb,\n    alarm_auto_play: settings.alarm_auto_play || true,\n    timestamp: Math.floor(Date.now() / 1000)\n};\n\nmsg.topic = 'doorbell/cmd/settings';\nmsg.settingsData = settings; // Store for HTTP response\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -689,9 +825,27 @@
         "wires": [
             [
                 "14e4d6d37f5cdc19",
-                "311801786757dfdf"
+                "311801786757dfdf",
+                "debug_settings_mqtt"
             ]
         ]
+    },
+    {
+        "id": "debug_settings_mqtt",
+        "type": "debug",
+        "z": "bd6bb11c58fb203e",
+        "name": "⚙️ SETTINGS SYNC",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1350,
+        "y": 2580,
+        "wires": []
     },
     {
         "id": "14e4d6d37f5cdc19",
@@ -737,7 +891,11 @@
         "z": "bd6bb11c58fb203e",
         "name": "Return Error",
         "statusCode": "",
-        "headers": {},
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
         "x": 790,
         "y": 2700,
         "wires": []
@@ -748,7 +906,11 @@
         "z": "bd6bb11c58fb203e",
         "name": "Return Success",
         "statusCode": "",
-        "headers": {},
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
         "x": 1580,
         "y": 2620,
         "wires": []
@@ -800,7 +962,7 @@
         "type": "function",
         "z": "bd6bb11c58fb203e",
         "name": " Generate Command ID",
-        "func": "// Node: Function - Generate Snapshot Command\nconst commandId = 'cmd_' + Date.now() + '_snapshot';\nconst timestamp = Math.floor(Date.now() / 1000);\n\n// Prepare MQTT payload\nmsg.mqttPayload = {\n    command_id: commandId,\n    timestamp: timestamp\n};\n\n// Store for HTTP response\nmsg.commandId = commandId;\nmsg.timestamp = timestamp;\n\n// Prepare MQTT topic\nmsg.topic = 'doorbell/cmd/snapshot';\n\nreturn msg;",
+        "func": "// Node: Function - Generate Snapshot Command\nconst commandId = 'cmd_' + Date.now() + '_snapshot';\nconst timestamp = Math.floor(Date.now() / 1000);\n\n// MQTT Out node publishes msg.payload, NOT msg.mqttPayload!\nmsg.payload = {\n    action: 'capture',\n    command_id: commandId,\n    timestamp: timestamp\n};\n\n// Store for HTTP response\nmsg.commandId = commandId;\nmsg.timestamp = timestamp;\n\n// Prepare MQTT topic\nmsg.topic = 'doorbell/cmd/snapshot';\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -846,7 +1008,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 970,
+        "x": 990,
         "y": 1060,
         "wires": [
             [
@@ -866,50 +1028,6 @@
         "wires": []
     },
     {
-        "id": "76e9c0bf826a57a2",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Save to Quick Responses ",
-        "func": "// Node: Function - Save to Quick Responses DB\n// Extract filename from URL for title\nconst audioUrl = msg.audioUrl;\nconst fileName = audioUrl.split('/').pop(); // Get \"message_1767040515399.wav\"\nconst title = fileName.replace('.wav', '').replace('message_', 'Tin nhắn #');\n\n// Prepare insert payload\nmsg.payload = JSON.stringify({\n    title: title,\n    audio_url: audioUrl,\n    is_active: true\n});\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1230,
-        "y": 1480,
-        "wires": [
-            [
-                "21cedf4e404fed99"
-            ]
-        ]
-    },
-    {
-        "id": "21cedf4e404fed99",
-        "type": "http request",
-        "z": "bd6bb11c58fb203e",
-        "name": " Insert to Supabase",
-        "method": "POST",
-        "ret": "txt",
-        "paytoqs": "ignore",
-        "url": "https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/quick_responses",
-        "tls": "",
-        "persist": false,
-        "proxy": "",
-        "insecureHTTPParser": false,
-        "authType": "",
-        "senderr": false,
-        "headers": [],
-        "x": 1470,
-        "y": 1480,
-        "wires": [
-            [
-                "d6994a03a3653bad"
-            ]
-        ]
-    },
-    {
         "id": "d6994a03a3653bad",
         "type": "function",
         "z": "bd6bb11c58fb203e",
@@ -921,8 +1039,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1760,
-        "y": 1480,
+        "x": 1100,
+        "y": 1400,
         "wires": [
             [
                 "ddc987ed11cbdfe1"
@@ -930,11 +1048,211 @@
         ]
     },
     {
+        "id": "get_quick_responses_http",
+        "type": "http in",
+        "z": "bd6bb11c58fb203e",
+        "name": "GET /api/quick-responses",
+        "url": "/api/quick-responses",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 180,
+        "y": 2900,
+        "wires": [
+            [
+                "build_quick_responses_query"
+            ]
+        ]
+    },
+    {
+        "id": "build_quick_responses_query",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Build Query",
+        "func": "// Query all active quick_responses, ordered by id\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/quick_responses?is_active=eq.true&order=id.asc';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 2900,
+        "wires": [
+            [
+                "query_quick_responses_db"
+            ]
+        ]
+    },
+    {
+        "id": "query_quick_responses_db",
+        "type": "http request",
+        "z": "bd6bb11c58fb203e",
+        "name": "Query Quick Responses",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 760,
+        "y": 2900,
+        "wires": [
+            [
+                "format_quick_responses_response"
+            ]
+        ]
+    },
+    {
+        "id": "format_quick_responses_response",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Format Response",
+        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        data = [];\n    }\n}\n\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    data: data\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1050,
+        "y": 2900,
+        "wires": [
+            [
+                "http_quick_responses_response"
+            ]
+        ]
+    },
+    {
+        "id": "http_quick_responses_response",
+        "type": "http response",
+        "z": "bd6bb11c58fb203e",
+        "name": "Return Quick Responses",
+        "statusCode": "",
+        "headers": {},
+        "x": 1330,
+        "y": 2900,
+        "wires": []
+    },
+    {
+        "id": "patch_quick_response_http",
+        "type": "http in",
+        "z": "bd6bb11c58fb203e",
+        "name": "PATCH /api/quick-responses/:title",
+        "url": "/api/quick-responses/:title",
+        "method": "patch",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 180,
+        "y": 3100,
+        "wires": [
+            [
+                "validate_patch_quick_response"
+            ]
+        ]
+    },
+    {
+        "id": "validate_patch_quick_response",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Validate & Prepare Update",
+        "func": "const title = msg.req.params.title;\nconst payload = msg.payload;\n\n// Validate title\nconst allowedTitles = ['wait', 'notHome', 'busy', 'package'];\nif (!title || !allowedTitles.includes(title)) {\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Invalid title\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"title\",\n            message: \"title must be one of: wait, notHome, busy, package\"\n        }\n    };\n    return [null, msg];\n}\n\n// Validate audio_url\nif (!payload.audio_url || typeof payload.audio_url !== 'string') {\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Validation failed\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"audio_url\",\n            message: \"audio_url is required and must be a string\"\n        }\n    };\n    return [null, msg];\n}\n\n// Prepare update\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/quick_responses?title=eq.' + title;\nmsg.method = 'PATCH';\nmsg.payload = {\n    audio_url: payload.audio_url,\n    created_at: new Date().toISOString()\n};\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nmsg.titleParam = title;\n\nreturn [msg, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 3100,
+        "wires": [
+            [
+                "update_quick_response_db"
+            ],
+            [
+                "http_quick_response_error"
+            ]
+        ]
+    },
+    {
+        "id": "update_quick_response_db",
+        "type": "http request",
+        "z": "bd6bb11c58fb203e",
+        "name": "Update Quick Response",
+        "method": "use",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 870,
+        "y": 3080,
+        "wires": [
+            [
+                "format_update_response"
+            ]
+        ]
+    },
+    {
+        "id": "format_update_response",
+        "type": "function",
+        "z": "bd6bb11c58fb203e",
+        "name": "Format Success Response",
+        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        data = [];\n    }\n}\n\nif (Array.isArray(data) && data.length > 0) {\n    msg.statusCode = 200;\n    msg.payload = {\n        success: true,\n        message: \"Quick response updated successfully\",\n        data: data[0]\n    };\n} else {\n    msg.statusCode = 404;\n    msg.payload = {\n        success: false,\n        error: \"Quick response not found\",\n        code: \"NOT_FOUND\"\n    };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1170,
+        "y": 3080,
+        "wires": [
+            [
+                "http_quick_response_success"
+            ]
+        ]
+    },
+    {
+        "id": "http_quick_response_success",
+        "type": "http response",
+        "z": "bd6bb11c58fb203e",
+        "name": "Return Success",
+        "statusCode": "",
+        "headers": {},
+        "x": 1430,
+        "y": 3080,
+        "wires": []
+    },
+    {
+        "id": "http_quick_response_error",
+        "type": "http response",
+        "z": "bd6bb11c58fb203e",
+        "name": "Return Error",
+        "statusCode": "",
+        "headers": {},
+        "x": 830,
+        "y": 3180,
+        "wires": []
+    },
+    {
         "id": "mqtt_pir_in",
         "type": "mqtt in",
         "z": "e38e81b07fd63314",
-        "name": "PIR Motion Event",
-        "topic": "doorbell/evt/pir",
+        "name": "PIR High Alert (Burst)",
+        "topic": "doorbell/evt/pir_alert",
         "qos": "1",
         "datatype": "json",
         "broker": "0506134bb93b271d",
@@ -996,8 +1314,16 @@
         "id": "debug_pir",
         "type": "debug",
         "z": "e38e81b07fd63314",
-        "name": "PIR DB Response",
-        "x": 810,
+        "name": "💾 PIR DB Response",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 830,
         "y": 160,
         "wires": []
     },
@@ -1055,7 +1381,15 @@
         "id": "debug_motion",
         "type": "debug",
         "z": "e38e81b07fd63314",
-        "name": "Motion Log Response",
+        "name": "💾 Motion DB Response",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
         "x": 830,
         "y": 380,
         "wires": []
@@ -1164,7 +1498,7 @@
         "type": "function",
         "z": "a7b8c9d0e1f2g3h4",
         "name": "Prepare Sensor Insert",
-        "func": "const payload = msg.payload;\n\nif (!payload.value || !payload.timestamp) {\n    node.warn('Invalid sensor payload');\n    return null;\n}\n\nmsg.payload = {\n    sensor_type: 'temperature',\n    temperature: payload.value,\n    humidity: null,\n    created_at: new Date(payload.timestamp * 1000).toISOString(),\n    metadata: {\n        device_id: payload.device_id || 'ESP32_DOORBELL',\n        raw_timestamp: payload.timestamp,\n        unit: payload.unit || 'C'\n    }\n};\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn msg;",
+        "func": "const payload = msg.payload;\n\n// Handle both formats:\n// doorbell/sensor/temp: {value: 31.5, unit: \"C\", device_id: ..., timestamp: ...}\n// doorbell/telemetry: {temperature: 29.95, motion: false}\nconst temperature = payload.value || payload.temperature;\nconst timestamp = payload.timestamp || Math.floor(Date.now() / 1000);\n\nif (!temperature) {\n    node.warn('Invalid sensor payload: missing temperature/value');\n    return null;\n}\n\nmsg.payload = {\n    sensor_type: 'temperature',\n    temperature: temperature,\n    humidity: null,\n    created_at: new Date(timestamp * 1000).toISOString(),\n    metadata: {\n        device_id: payload.device_id || 'ESP32_DOORBELL',\n        raw_timestamp: timestamp,\n        unit: payload.unit || 'C'\n    }\n};\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -1206,12 +1540,13 @@
         "id": "debug_sensor",
         "type": "debug",
         "z": "a7b8c9d0e1f2g3h4",
-        "name": "Sensor DB Response",
+        "name": "💾 Sensor DB Response",
         "active": true,
         "tosidebar": true,
-        "console": false,
+        "console": true,
         "tostatus": false,
-        "complete": "false",
+        "complete": "true",
+        "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
         "x": 870,

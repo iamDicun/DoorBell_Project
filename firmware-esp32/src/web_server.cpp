@@ -16,7 +16,13 @@ bool initWiFi() {
         timeout--;
     }
     if (WiFi.status() == WL_CONNECTED) {
-        Serial.printf("\nWiFi OK! IP: %s\n", WiFi.localIP().toString().c_str());
+        String ip = WiFi.localIP().toString();
+        Serial.printf("\n========================================\n");
+        Serial.printf("WiFi Connected!\n");
+        Serial.printf("IP Address: %s\n", ip.c_str());
+        Serial.printf("Camera Stream: http://%s/stream\n", ip.c_str());
+        Serial.printf("Web Interface: http://%s/\n", ip.c_str());
+        Serial.printf("========================================\n");
         return true;
     }
     Serial.println("\nWiFi FAILED!");

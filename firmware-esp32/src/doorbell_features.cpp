@@ -294,6 +294,49 @@ void captureGuestPhoto() {
     }
 }
 
+// Capture snapshot photo (manual via MQTT command)
+void captureSnapshotPhoto() {
+    Serial.println("[FEATURE] Capturing snapshot photo");
+    
+    camera_fb_t* fb = captureFrame();
+    if (fb) {
+        Serial.printf("[FEATURE] Snapshot captured: %u bytes\n", fb->len);
+        
+        // Generate filename: timestamp_snapshot.jpg
+        unsigned long timestamp = getTimestamp();
+        char filename[64];
+        snprintf(filename, sizeof(filename), "%lu_snapshot.jpg", timestamp);
+        
+        // Upload to Supabase Storage
+        bool uploaded = uploadToSupabase(fb->buf, fb->len, SUPABASE_BUCKET_IMAGES, filename);
+        
+        if (uploaded) {
+            Serial.println("[FEATURE] Snapshot uploaded to Supabase");
+            
+            // Get public URL
+            const char* imageUrl = getLastUploadedUrl();
+            
+            // Publish to doorbell/evt/snapshot
+            char msg[512];
+            if (imageUrl && strlen(imageUrl) > 0) {
+                snprintf(msg, sizeof(msg),
+                         "{\"image_url\":\"%s\",\"timestamp\":%lu,\"description\":\"Manual snapshot\"}",
+                         imageUrl, timestamp);
+                mqttPublishJson(TOPIC_EVT_SNAPSHOT, msg);
+                Serial.printf("[FEATURE] Published to %s: %s\n", TOPIC_EVT_SNAPSHOT, msg);
+            } else {
+                Serial.println("[FEATURE] Warning: No URL returned from upload");
+            }
+        } else {
+            Serial.println("[FEATURE] Failed to upload snapshot to Supabase");
+        }
+        
+        releaseFrame(fb);
+    } else {
+        Serial.println("[FEATURE] Failed to capture snapshot");
+    }
+}
+
 void captureSecurityBurst() {
     Serial.println("[FEATURE] Capturing security burst (PIR triggered)");
     
