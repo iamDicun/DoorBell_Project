@@ -5,6 +5,8 @@
 .pio/build
 .pio/libdeps
 
+node_modules/
+
 # VSCode
 .vscode/.browse.*
 .vscode/c_cpp_properties.json
