@@ -596,8 +596,6 @@ PIRAlertLevel checkPIRAlertLevel() {
     // Determine alert level
     if (recentDetections >= PIR_ALERT_HIGH) {
         return ALERT_HIGH;
-    } else if (recentDetections >= PIR_ALERT_MEDIUM) {
-        return ALERT_MEDIUM;
     } else {
         return ALERT_NORMAL;
     }
@@ -616,11 +614,6 @@ void handlePIRAlert(PIRAlertLevel level) {
             Serial.println("[PIR] HIGH ALERT - Suspicious activity detected!");
             captureSecurityBurst();  // This will publish to TOPIC_EVT_PIR_ALERT with images
             activateAlarm();
-            break;
-            
-        case ALERT_MEDIUM:
-            Serial.println("[PIR] MEDIUM ALERT - Person detected");
-            captureGuestPhoto();  // This will publish to TOPIC_EVT_BUTTON with image
             break;
             
         case ALERT_NORMAL:

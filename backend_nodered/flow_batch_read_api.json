@@ -1,0 +1,115 @@
+[
+    {
+        "id": "batch_read_http_in",
+        "type": "http in",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "PUT /api/events/batch-read",
+        "url": "/api/events/batch-read",
+        "method": "put",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 180,
+        "y": 500,
+        "wires": [
+            [
+                "batch_read_validate"
+            ]
+        ]
+    },
+    {
+        "id": "batch_read_validate",
+        "type": "function",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "Validate & Prepare",
+        "func": "const payload = msg.payload;\n\n// Validate event_ids array\nif (!payload.event_ids || !Array.isArray(payload.event_ids) || payload.event_ids.length === 0) {\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: 'Missing or invalid event_ids array'\n    };\n    return [null, msg]; // Send to error output\n}\n\n// Build Supabase query with IN clause\nconst eventIds = payload.event_ids.join(',');\n\nmsg.url = `https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/events?id=in.(${eventIds})`;\nmsg.method = 'PATCH';\nmsg.payload = {\n    is_read: true\n};\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\n// Store original event_ids for response\nmsg.originalEventIds = payload.event_ids;\n\nreturn [msg, null]; // Send to success output",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 500,
+        "wires": [
+            [
+                "batch_read_supabase"
+            ],
+            [
+                "batch_read_response"
+            ]
+        ]
+    },
+    {
+        "id": "batch_read_supabase",
+        "type": "http request",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "Update Supabase Events",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 710,
+        "y": 480,
+        "wires": [
+            [
+                "batch_read_format"
+            ]
+        ]
+    },
+    {
+        "id": "batch_read_format",
+        "type": "function",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "Format Success Response",
+        "func": "const updatedRecords = msg.payload;\n\nmsg.payload = {\n    success: true,\n    message: `Marked ${msg.originalEventIds.length} events as read`,\n    updated_ids: msg.originalEventIds,\n    updated_count: Array.isArray(updatedRecords) ? updatedRecords.length : 0\n};\n\nmsg.statusCode = 200;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 980,
+        "y": 480,
+        "wires": [
+            [
+                "batch_read_response",
+                "batch_read_debug"
+            ]
+        ]
+    },
+    {
+        "id": "batch_read_response",
+        "type": "http response",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "HTTP Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1200,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "batch_read_debug",
+        "type": "debug",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "✅ Batch Read Success",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1230,
+        "y": 440,
+        "wires": []
+    }
+]

@@ -105,50 +105,54 @@ function SecurityDashboard() {
   }, []);
 
   // Fetch PIR alerts (burst images)
-  useEffect(() => {
-    const fetchPirAlerts = async () => {
-      setIsLoadingAlerts(true);
-      try {
-        const response = await axios.get('http://localhost:1880/api/events?limit=20&type=pir_motion');
-        if (response.data.success) {
-          // Group burst images by timestamp (same timestamp = same alert)
-          const alertsMap = {};
+  const fetchPirAlerts = async () => {
+    setIsLoadingAlerts(true);
+    try {
+      // Fetch only unread motion_detected events with level=high from backend
+      const response = await axios.get('http://localhost:1880/api/events?type=motion_detected&is_read=false&level=high');
+      if (response.data.success) {
+        // Group burst images by raw_timestamp (same timestamp = same alert)
+        const alertsMap = {};
+        
+        response.data.data.forEach(event => {
+          const timestamp = event.metadata?.raw_timestamp || event.created_at;
           
-          response.data.data.forEach(event => {
-            const timestamp = event.metadata?.raw_timestamp || event.created_at;
-            
-            if (!alertsMap[timestamp]) {
-              alertsMap[timestamp] = {
-                timestamp: timestamp,
-                time: new Date(event.created_at).toLocaleString('vi-VN'),
-                level: event.metadata?.level || 'high',
-                message: event.metadata?.message || 'Phát hiện chuyển động đáng ngờ',
-                images: [],
-                imageCount: 0
-              };
-            }
-            
-            // Add image URL to the burst
-            if (event.image_url) {
-              alertsMap[timestamp].images.push(event.image_url);
-              alertsMap[timestamp].imageCount++;
-            }
-          });
+          if (!alertsMap[timestamp]) {
+            alertsMap[timestamp] = {
+              timestamp: timestamp,
+              time: new Date(event.created_at).toLocaleString('vi-VN'),
+              level: event.metadata?.level || 'high',
+              message: event.description || 'Phát hiện chuyển động đáng ngờ',
+              images: [],
+              imageCount: 0,
+              eventIds: [] // Store event IDs for batch update
+            };
+          }
           
-          // Convert map to array and sort by timestamp
-          const alertsArray = Object.values(alertsMap)
-            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-          
-          setPirAlerts(alertsArray);
-        }
-      } catch (error) {
-        console.error('Error fetching PIR alerts:', error);
-        setPirAlerts([]);
-      } finally {
-        setIsLoadingAlerts(false);
+          // Add image URL and event ID to the burst
+          if (event.image_url) {
+            alertsMap[timestamp].images.push(event.image_url);
+            alertsMap[timestamp].imageCount++;
+            alertsMap[timestamp].eventIds.push(event.id);
+          }
+        });
+        
+        // Convert map to array and sort by timestamp (backend already filtered by level=high)
+        const alertsArray = Object.values(alertsMap)
+          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        console.log('[AlertTab] Fetched high-level alerts:', alertsArray.length);
+        setPirAlerts(alertsArray);
       }
-    };
+    } catch (error) {
+      console.error('[AlertTab] Error fetching PIR alerts:', error);
+      setPirAlerts([]);
+    } finally {
+      setIsLoadingAlerts(false);
+    }
+  };
 
+  useEffect(() => {
     fetchPirAlerts();
   }, []);
 
@@ -414,6 +418,25 @@ function SecurityDashboard() {
     alert('Đang kích hoạt cảnh báo... (Chức năng sẽ được thêm sau)');
   };
 
+  // Mark alert as read (update all images in burst)
+  const handleMarkAsRead = async (alertItem) => {
+    try {
+      console.log('[AlertTab] Marking alert as read:', alertItem.eventIds);
+      const response = await axios.put('http://localhost:1880/api/events/batch-read', {
+        event_ids: alertItem.eventIds
+      });
+      
+      if (response.data.success) {
+        console.log('[AlertTab] Alert marked as read successfully');
+        // Refresh alerts list
+        fetchPirAlerts();
+      }
+    } catch (error) {
+      console.error('[AlertTab] Error marking alert as read:', error);
+      window.alert('Có lỗi khi đánh dấu đã đọc. Vui lòng thử lại.');
+    }
+  };
+
   const handleToggleNotification = async () => {
     const newState = !notificationEnabled;
     
@@ -488,6 +511,7 @@ function SecurityDashboard() {
             alerts={pirAlerts}
             isLoading={isLoadingAlerts}
             onPlayAlarm={handlePlayAlarm}
+            onMarkAsRead={handleMarkAsRead}
           />
         )}
 

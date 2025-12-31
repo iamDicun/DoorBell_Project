@@ -426,26 +426,5 @@
                 "file": "C:\\Users\\ADMIN\\AppData\\Roaming\\npm\\node_modules\\node-red\\node_modules\\@node-red\\nodes\\core\\storage\\23-watch.js"
             }
         }
-    },
-    "node-red-node-email": {
-        "name": "node-red-node-email",
-        "version": "5.0.5",
-        "local": true,
-        "user": true,
-        "nodes": {
-            "email": {
-                "name": "email",
-                "types": [
-                    "e-mail",
-                    "e-mail in",
-                    "e-mail mta"
-                ],
-                "enabled": true,
-                "local": true,
-                "user": false,
-                "module": "node-red-node-email",
-                "file": "C:\\Users\\ADMIN\\Documents\\GitHub\\DoorBell_Project\\backend_nodered\\node_modules\\node-red-node-email\\61-email.js"
-            }
-        }
     }
 }

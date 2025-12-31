@@ -51,14 +51,13 @@
 // --- BUTTON CONFIGURATION ---
 #define BUTTON_SHORT_PRESS_MS   100   // Minimum time for valid press
 #define BUTTON_LONG_PRESS_MS    3000  // Long press threshold for voice note
-#define DEBOUNCE_MS             100    // Debounce time for button
+#define DEBOUNCE_MS             50     // Debounce time for button
 
 // --- PIR ALERT LEVELS ---
 #define PIR_SCAN_INTERVAL_MS    5000  // Scan every 5 seconds
 #define PIR_SCAN_WINDOW_MS      20000 // 20 second window
-#define PIR_ALERT_HIGH          4     // 4 detections in 20s = high alert
-#define PIR_ALERT_MEDIUM        3     // 3 detections = medium alert
-#define PIR_ALERT_NORMAL        1     // 1-2 detections = normal
+#define PIR_ALERT_HIGH          4     // 4+ detections in 20s = high alert
+#define PIR_ALERT_NORMAL        1     // 1-3 detections = normal
 
 // --- CAMERA BURST CONFIGURATION ---
 #define CAMERA_BURST_COUNT      3     // Number of photos in burst mode

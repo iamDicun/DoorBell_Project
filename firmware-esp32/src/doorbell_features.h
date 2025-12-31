@@ -29,8 +29,7 @@ void readEnvironmentTemperature();
 // --- PIR Alert System ---
 enum PIRAlertLevel {
     ALERT_NORMAL = 0,
-    ALERT_MEDIUM = 1,
-    ALERT_HIGH = 2
+    ALERT_HIGH = 1
 };
 
 PIRAlertLevel checkPIRAlertLevel();

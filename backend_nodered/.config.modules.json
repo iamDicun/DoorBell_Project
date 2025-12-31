@@ -1,0 +1,9 @@
+{
+    "axios": {
+        "spec": "axios",
+        "module": "axios",
+        "subpath": "",
+        "builtin": false,
+        "known": false
+    }
+}

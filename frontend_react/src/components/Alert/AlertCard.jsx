@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Camera, Volume2, Clock, Image as ImageIcon } from 'lucide-react';
+import { Camera, Volume2, Clock, Image as ImageIcon, CheckCircle } from 'lucide-react';
 import './AlertCard.css';
 
-function AlertCard({ alert, onPlayAlarm }) {
+function AlertCard({ alert, onPlayAlarm, onMarkAsRead }) {
   const [selectedImage, setSelectedImage] = useState(null);
 
   const handleImageClick = (imageUrl) => {
@@ -66,7 +66,15 @@ function AlertCard({ alert, onPlayAlarm }) {
 
         <div className="alert-actions">
           <button 
-            className="btn-alert"
+            className="btn-alert btn-mark-read"
+            onClick={() => onMarkAsRead(alert)}
+            title="Đánh dấu đã đọc"
+          >
+            <CheckCircle size={18} />
+            <span>Đánh dấu đã đọc</span>
+          </button>
+          <button 
+            className="btn-alert btn-disabled"
             onClick={() => onPlayAlarm(alert)}
             disabled
             title="Chức năng sẽ được thêm sau"
@@ -74,7 +82,6 @@ function AlertCard({ alert, onPlayAlarm }) {
             <Volume2 size={18} />
             <span>Phát loa cảnh báo</span>
           </button>
-          <span className="alert-note">(Chức năng sẽ được thêm sau)</span>
         </div>
       </div>
 

@@ -200,7 +200,9 @@ module.exports = {
      */
     httpNodeCors: {
        origin: "*",
-       methods: "GET,PUT,POST,PATCH,DELETE"
+       methods: ["GET", "PUT", "POST", "PATCH", "DELETE", "OPTIONS"],
+       allowedHeaders: ["Content-Type", "Authorization", "apikey"],
+       credentials: true
     },
 
     /** If you need to set an http proxy please set an environment variable
@@ -261,7 +263,7 @@ module.exports = {
      */
     httpStaticCors: {
        origin: "*",
-       methods: "GET,PUT,POST,DELETE"
+       methods: "GET,PUT,POST,DELETE, PATCH"
     },
 
     /** The following property can be used to modify proxy options */

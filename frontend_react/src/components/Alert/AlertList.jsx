@@ -3,7 +3,7 @@ import { AlertTriangle, Loader2 } from 'lucide-react';
 import AlertCard from './AlertCard';
 import './AlertList.css';
 
-function AlertList({ alerts, isLoading, onPlayAlarm }) {
+function AlertList({ alerts, isLoading, onPlayAlarm, onMarkAsRead }) {
   if (isLoading) {
     return (
       <div className="section">
@@ -28,8 +28,8 @@ function AlertList({ alerts, isLoading, onPlayAlarm }) {
         </div>
         <div style={{ textAlign: 'center', padding: '40px' }}>
           <AlertTriangle size={64} style={{ margin: '0 auto', color: '#888' }} />
-          <p style={{ marginTop: '16px', color: '#888' }}>Không có cảnh báo nào</p>
-          <p style={{ fontSize: '14px', color: '#888' }}>Hệ thống sẽ tự động phát hiện chuyển động đáng ngờ</p>
+          <p style={{ marginTop: '16px', color: '#888' }}>Không có cảnh báo chưa đọc</p>
+          <p style={{ fontSize: '14px', color: '#888' }}>Tất cả cảnh báo đã được xử lý</p>
         </div>
       </div>
     );
@@ -47,6 +47,7 @@ function AlertList({ alerts, isLoading, onPlayAlarm }) {
             key={alert.timestamp} 
             alert={alert} 
             onPlayAlarm={onPlayAlarm}
+            onMarkAsRead={onMarkAsRead}
           />
         ))}
       </div>
