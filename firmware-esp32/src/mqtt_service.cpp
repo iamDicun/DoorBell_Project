@@ -523,8 +523,28 @@ bool mqttReconnect() {
         Serial.println("\n[MQTT] ✗ WiFi disconnected! Cannot connect to MQTT.");
         Serial.printf("[WiFi] Status: %d\n", WiFi.status());
         Serial.println("[WiFi] Attempting to reconnect WiFi...");
+        
+        // Attempt to reconnect WiFi and wait
         WiFi.reconnect();
-        return false;
+        
+        int wifiAttempts = 0;
+        while (WiFi.status() != WL_CONNECTED && wifiAttempts < 20) {
+            delay(500);
+            Serial.print(".");
+            wifiAttempts++;
+        }
+        Serial.println();
+        
+        if (WiFi.status() == WL_CONNECTED) {
+            Serial.println("✓ [WiFi] Reconnected successfully!");
+            Serial.printf("[WiFi] IP: %s\n", WiFi.localIP().toString().c_str());
+            Serial.printf("[WiFi] RSSI: %d dBm\n", WiFi.RSSI());
+            // Continue to MQTT connection below
+        } else {
+            Serial.println("✗ [WiFi] Failed to reconnect");
+            Serial.printf("[WiFi] Status: %d\n", WiFi.status());
+            return false;
+        }
     }
     
     Serial.println("\n┌──────────────────────────────────────┐");
