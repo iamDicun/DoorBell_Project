@@ -32,6 +32,46 @@
         "env": []
     },
     {
+        "id": "f68aef237bdc79db",
+        "type": "tab",
+        "label": "Flow 5",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "c6fb1e5c221b5203",
+        "type": "tab",
+        "label": "Flow 6",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "1ab3a512540aedc7",
+        "type": "tab",
+        "label": "Flow 7",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "b6ceb0b74b3f1936",
+        "type": "tab",
+        "label": "Flow 8",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "f78bcf5b56506dfb",
+        "type": "tab",
+        "label": "Flow 9",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "190054bad0bb2f7c",
         "type": "tls-config",
         "name": "",
@@ -140,7 +180,7 @@
         "finalize": "",
         "libs": [],
         "x": 640,
-        "y": 220,
+        "y": 260,
         "wires": [
             [
                 "get_dnd_button"
@@ -162,8 +202,8 @@
         "insecureHTTPParser": false,
         "authType": "",
         "senderr": false,
-        "x": 910,
-        "y": 220,
+        "x": 890,
+        "y": 180,
         "wires": [
             [
                 "filter_dnd_button"
@@ -182,8 +222,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1140,
-        "y": 220,
+        "x": 1060,
+        "y": 260,
         "wires": [
             [
                 "get_button_recipients"
@@ -219,8 +259,8 @@
                 "valueValue": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8"
             }
         ],
-        "x": 1360,
-        "y": 220,
+        "x": 1280,
+        "y": 180,
         "wires": [
             [
                 "send_button_emails"
@@ -239,8 +279,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1580,
-        "y": 220,
+        "x": 1500,
+        "y": 260,
         "wires": [
             [
                 "email_out_button"
@@ -260,8 +300,8 @@
         "tls": false,
         "name": "",
         "dname": "",
-        "x": 1810,
-        "y": 220,
+        "x": 1710,
+        "y": 180,
         "wires": []
     },
     {
@@ -271,8 +311,8 @@
         "name": "Insert to Supabase",
         "method": "POST",
         "url": "https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/events",
-        "x": 590,
-        "y": 160,
+        "x": 610,
+        "y": 100,
         "wires": [
             [
                 "debug1"
@@ -284,8 +324,8 @@
         "type": "debug",
         "z": "bd6bb11c58fb203e",
         "name": "DB Response",
-        "x": 780,
-        "y": 160,
+        "x": 800,
+        "y": 100,
         "wires": []
     },
     {
@@ -298,8 +338,8 @@
         "upload": false,
         "skipBodyParsing": false,
         "swaggerDoc": "",
-        "x": 170,
-        "y": 310,
+        "x": 160,
+        "y": 460,
         "wires": [
             [
                 "build_query"
@@ -313,8 +353,8 @@
         "name": "Build Query",
         "func": "const limit = msg.req.query.limit || 50;\nconst eventType = msg.req.query.type || null;\nconst isRead = msg.req.query.is_read || null;\nconst level = msg.req.query.level || null;\n\nlet url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/events?order=created_at.desc&limit=' + limit;\n\nif (eventType) {\n    url += '&event_type=eq.' + eventType;\n}\n\nif (isRead !== null) {\n    url += '&is_read=eq.' + isRead;\n}\n\n// Filter by metadata level (Supabase JSONB query)\nif (level) {\n    url += '&metadata->>level=eq.' + level;\n}\n\nmsg.url = url;\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\n\nreturn msg;",
         "outputs": 1,
-        "x": 360,
-        "y": 310,
+        "x": 350,
+        "y": 460,
         "wires": [
             [
                 "query_db"
@@ -328,8 +368,8 @@
         "name": "Query Supabase",
         "method": "GET",
         "url": "",
-        "x": 550,
-        "y": 310,
+        "x": 540,
+        "y": 460,
         "wires": [
             [
                 "format_response"
@@ -343,8 +383,8 @@
         "name": "Format Response",
         "func": "// Parse response if it's a string\nlet data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        data = [];\n    }\n}\n\nmsg.payload = {\n    success: true,\n    data: data,\n    count: Array.isArray(data) ? data.length : 0\n};\nmsg.statusCode = 200;\nreturn msg;",
         "outputs": 1,
-        "x": 750,
-        "y": 310,
+        "x": 740,
+        "y": 460,
         "wires": [
             [
                 "http_response"
@@ -356,1429 +396,8 @@
         "type": "http response",
         "z": "bd6bb11c58fb203e",
         "name": "",
-        "x": 950,
-        "y": 310,
-        "wires": []
-    },
-    {
-        "id": "1992c9765106273a",
-        "type": "mqtt in",
-        "z": "bd6bb11c58fb203e",
-        "name": "ESP32 Snapshot Response",
-        "topic": "doorbell/evt/snapshot",
-        "qos": "1",
-        "datatype": "auto-detect",
-        "broker": "0506134bb93b271d",
-        "nl": false,
-        "rap": true,
-        "rh": 0,
-        "inputs": 0,
-        "x": 200,
-        "y": 560,
-        "wires": [
-            [
-                "8a56a7e9772f058a"
-            ]
-        ]
-    },
-    {
-        "id": "8a56a7e9772f058a",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Parse Snapshot Response",
-        "func": "// Node: Function - Parse Snapshot Response\nconst payload = msg.payload;\n\n// Validate payload\nif (!payload.image_url || !payload.timestamp) {\n    node.warn('Invalid snapshot response payload');\n    return null;\n}\n\n// Prepare Supabase insert\nmsg.payload = {\n    event_type: 'snapshot',\n    image_url: payload.image_url,\n    description: 'Chụp ảnh thủ công',\n    created_at: new Date(payload.timestamp * 1000).toISOString(),\n    metadata: {\n        source: 'manual_command',\n        command_id: payload.command_id || null,\n        raw_timestamp: payload.timestamp\n    }\n};\n\n// Prepare Supabase headers\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 480,
-        "y": 560,
-        "wires": [
-            [
-                "5e2322ac291b5f6c"
-            ]
-        ]
-    },
-    {
-        "id": "5e2322ac291b5f6c",
-        "type": "http request",
-        "z": "bd6bb11c58fb203e",
-        "name": "Insert Snapshot to DB",
-        "method": "POST",
-        "ret": "txt",
-        "paytoqs": "ignore",
-        "url": "https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/events",
-        "tls": "",
-        "persist": false,
-        "proxy": "",
-        "insecureHTTPParser": false,
-        "authType": "",
-        "senderr": false,
-        "headers": [],
-        "x": 740,
-        "y": 560,
-        "wires": [
-            [
-                "f5ff55aa07fd5638"
-            ]
-        ]
-    },
-    {
-        "id": "f5ff55aa07fd5638",
-        "type": "debug",
-        "z": "bd6bb11c58fb203e",
-        "name": " Snapshot Saved",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 1000,
-        "y": 560,
-        "wires": []
-    },
-    {
-        "id": "d79d32f14038a8f2",
-        "type": "http in",
-        "z": "bd6bb11c58fb203e",
-        "name": "POST /api/commands/speak",
-        "url": "/api/commands/speak",
-        "method": "post",
-        "upload": false,
-        "skipBodyParsing": false,
-        "swaggerDoc": "",
-        "x": 200,
-        "y": 1400,
-        "wires": [
-            [
-                "9a6f9dfc1cf6fb65"
-            ]
-        ]
-    },
-    {
-        "id": "9a6f9dfc1cf6fb65",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Validate & Prepare",
-        "func": "// Node: Function - Validate Speak Command\nnode.warn('📨 [SPEAK] Request received');\nnode.warn('📦 Payload: ' + JSON.stringify(msg.payload));\n\nconst payload = msg.payload;\n\n// Validation\nif (!payload.audio_url) {\n    node.error('❌ Validation failed: audio_url missing');\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Validation failed\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"audio_url\",\n            message: \"audio_url is required\"\n        }\n    };\n    return [null, msg]; // Send to error output\n}\n\n// Validate volume\nconst volume = payload.volume || 80;\nif (volume < 0 || volume > 100) {\n    node.error('❌ Validation failed: volume out of range');\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Validation failed\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"volume\",\n            message: \"volume must be between 0 and 100\"\n        }\n    };\n    return [null, msg];\n}\n\n// Generate command\nconst commandId = 'cmd_' + Date.now() + '_speak';\nconst timestamp = Math.floor(Date.now() / 1000);\n\n// MQTT payload\nmsg.mqttPayload = {\n    command_id: commandId,\n    audio_url: payload.audio_url,\n    volume: volume,\n    timestamp: timestamp\n};\n\nmsg.commandId = commandId;\nmsg.audioUrl = payload.audio_url;\nmsg.volume = volume;\nmsg.timestamp = timestamp;\nmsg.topic = 'doorbell/cmd/speak';\n\nnode.warn('✅ Validation passed');\nnode.warn('🎵 Audio URL: ' + payload.audio_url);\nnode.warn('🔉 Volume: ' + volume);\nnode.warn('📡 MQTT Topic: ' + msg.topic);\n\nreturn [msg, null]; // Send to success output",
-        "outputs": 2,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 530,
-        "y": 1400,
-        "wires": [
-            [
-                "prepare_speak_mqtt",
-                "d6994a03a3653bad"
-            ],
-            [
-                "869e6f35da0d5eef"
-            ]
-        ]
-    },
-    {
-        "id": "prepare_speak_mqtt",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Prepare MQTT Payload",
-        "func": "// Set msg.payload for MQTT out node\nnode.warn('📡 [MQTT] Preparing to publish');\nnode.warn('📡 Topic: ' + msg.topic);\nnode.warn('📡 Payload: ' + JSON.stringify(msg.mqttPayload));\n\n// MQTT out node auto-converts object to JSON\\nmsg.payload = msg.mqttPayload;\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 830,
-        "y": 1300,
-        "wires": [
-            [
-                "ce3e4277b0986455"
-            ]
-        ]
-    },
-    {
-        "id": "ce3e4277b0986455",
-        "type": "mqtt out",
-        "z": "bd6bb11c58fb203e",
-        "name": "Publish Speak Command",
-        "topic": "",
-        "qos": "1",
-        "retain": "false",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "0506134bb93b271d",
-        "x": 1170,
-        "y": 1300,
-        "wires": []
-    },
-    {
-        "id": "ddc987ed11cbdfe1",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return Success",
-        "statusCode": "",
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
-        },
-        "x": 1180,
-        "y": 1400,
-        "wires": []
-    },
-    {
-        "id": "869e6f35da0d5eef",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return Error",
-        "statusCode": "",
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
-        },
-        "x": 830,
-        "y": 1460,
-        "wires": []
-    },
-    {
-        "id": "new_get_settings",
-        "type": "http in",
-        "z": "bd6bb11c58fb203e",
-        "name": "GET /api/settings",
-        "url": "/api/settings",
-        "method": "get",
-        "upload": false,
-        "skipBodyParsing": false,
-        "swaggerDoc": "",
-        "x": 180,
-        "y": 2200,
-        "wires": [
-            [
-                "new_query_settings"
-            ]
-        ]
-    },
-    {
-        "id": "new_query_settings",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Fetch from Supabase",
-        "func": "msg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 430,
-        "y": 2200,
-        "wires": [
-            [
-                "new_http_get_settings"
-            ]
-        ]
-    },
-    {
-        "id": "new_http_get_settings",
-        "type": "http request",
-        "z": "bd6bb11c58fb203e",
-        "name": "GET Settings",
-        "method": "GET",
-        "ret": "txt",
-        "paytoqs": "ignore",
-        "url": "",
-        "tls": "",
-        "persist": false,
-        "proxy": "",
-        "insecureHTTPParser": false,
-        "authType": "",
-        "senderr": false,
-        "headers": [],
-        "x": 650,
-        "y": 2200,
-        "wires": [
-            [
-                "new_format_get_response"
-            ]
-        ]
-    },
-    {
-        "id": "new_format_get_response",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Format Response",
-        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    data = JSON.parse(data);\n}\n\nconst settings = Array.isArray(data) ? data[0] : data;\n\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    data: settings\n};\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 860,
-        "y": 2200,
-        "wires": [
-            [
-                "new_get_response"
-            ]
-        ]
-    },
-    {
-        "id": "new_get_response",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return to Frontend",
-        "statusCode": "",
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
-        },
-        "x": 1090,
-        "y": 2200,
-        "wires": []
-    },
-    {
-        "id": "new_put_settings",
-        "type": "http in",
-        "z": "bd6bb11c58fb203e",
-        "name": "PUT /api/settings",
-        "url": "/api/settings",
-        "method": "put",
-        "upload": false,
-        "skipBodyParsing": false,
-        "swaggerDoc": "",
-        "x": 180,
-        "y": 2300,
-        "wires": [
-            [
-                "new_validate_settings"
-            ]
-        ]
-    },
-    {
-        "id": "new_validate_settings",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Validate & Update DB",
-        "func": "const payload = msg.payload;\n\n// Validate volume\nif (payload.speaker_volume !== undefined && (payload.speaker_volume < 0 || payload.speaker_volume > 100)) {\n    msg.statusCode = 400;\n    msg.payload = { success: false, error: \"speaker_volume must be 0-100\" };\n    return [null, msg];\n}\n\n// Build update\nconst update = { updated_at: new Date().toISOString() };\nif (payload.alarm_enabled !== undefined) update.alarm_enabled = payload.alarm_enabled;\nif (payload.speaker_volume !== undefined) update.speaker_volume = payload.speaker_volume;\nif (payload.pir_enabled !== undefined) update.pir_enabled = payload.pir_enabled;\nif (payload.notifications_enabled !== undefined) update.notifications_enabled = payload.notifications_enabled;\nif (payload.do_not_disturb !== undefined) update.do_not_disturb = payload.do_not_disturb;\nif (payload.alarm_auto_play !== undefined) update.alarm_auto_play = payload.alarm_auto_play;\nif (payload.temp_enabled !== undefined) update.temp_enabled = payload.temp_enabled;\n\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.method = 'PATCH';\nmsg.payload = update;\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json'\n};\n\nreturn [msg, null];",
-        "outputs": 2,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 440,
-        "y": 2300,
-        "wires": [
-            [
-                "new_http_update"
-            ],
-            [
-                "new_error_response"
-            ]
-        ]
-    },
-    {
-        "id": "new_http_update",
-        "type": "http request",
-        "z": "bd6bb11c58fb203e",
-        "name": "Update in DB",
-        "method": "use",
-        "ret": "txt",
-        "paytoqs": "ignore",
-        "url": "",
-        "tls": "",
-        "persist": false,
-        "proxy": "",
-        "insecureHTTPParser": false,
-        "authType": "",
-        "senderr": false,
-        "headers": [],
-        "x": 690,
-        "y": 2280,
-        "wires": [
-            [
-                "new_fetch_updated"
-            ]
-        ]
-    },
-    {
-        "id": "new_fetch_updated",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Fetch Updated Settings",
-        "func": "msg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.method = 'GET';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 930,
-        "y": 2280,
-        "wires": [
-            [
-                "new_http_fetch"
-            ]
-        ]
-    },
-    {
-        "id": "new_http_fetch",
-        "type": "http request",
-        "z": "bd6bb11c58fb203e",
-        "name": "GET Updated",
-        "method": "use",
-        "ret": "txt",
-        "paytoqs": "ignore",
-        "url": "",
-        "tls": "",
-        "persist": false,
-        "proxy": "",
-        "insecureHTTPParser": false,
-        "authType": "",
-        "senderr": false,
-        "headers": [],
-        "x": 1150,
-        "y": 2280,
-        "wires": [
-            [
-                "new_publish_and_respond"
-            ]
-        ]
-    },
-    {
-        "id": "new_publish_and_respond",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Publish to MQTT & Format Response",
-        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    data = JSON.parse(data);\n}\n\nconst settings = Array.isArray(data) ? data[0] : data;\n\n// Publish to MQTT\nconst mqttMsg = {\n    payload: {\n        action: 'sync_settings',\n        speaker_volume: settings.speaker_volume ?? 75,\n        pir_enabled: settings.pir_enabled !== false,\n        alarm_enabled: settings.alarm_enabled !== false,\n        notifications_enabled: settings.notifications_enabled !== false,\n        do_not_disturb: settings.do_not_disturb === true,\n        alarm_auto_play: settings.alarm_auto_play !== false,\n        temp_enabled: settings.temp_enabled !== false\n    },\n    topic: 'doorbell/cmd/settings',\n    qos: 1\n};\n\n// HTTP response (preserve req/res)\nconst httpMsg = {\n    req: msg.req,\n    res: msg.res,\n    payload: {\n        success: true,\n        message: 'Settings updated',\n        data: settings\n    },\n    statusCode: 200\n};\n\nreturn [mqttMsg, httpMsg];",
-        "outputs": 2,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1440,
-        "y": 2280,
-        "wires": [
-            [
-                "new_mqtt_out"
-            ],
-            [
-                "new_put_response"
-            ]
-        ]
-    },
-    {
-        "id": "new_mqtt_out",
-        "type": "mqtt out",
-        "z": "bd6bb11c58fb203e",
-        "name": "Publish to ESP32",
-        "topic": "",
-        "qos": "",
-        "retain": "false",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "0506134bb93b271d",
-        "x": 1740,
-        "y": 2240,
-        "wires": []
-    },
-    {
-        "id": "new_put_response",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return to Frontend",
-        "statusCode": "",
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
-        },
-        "x": 1740,
-        "y": 2320,
-        "wires": []
-    },
-    {
-        "id": "new_error_response",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return Error",
-        "statusCode": "",
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
-        },
-        "x": 680,
-        "y": 2360,
-        "wires": []
-    },
-    {
-        "id": "new_options_settings",
-        "type": "http in",
-        "z": "bd6bb11c58fb203e",
-        "name": "OPTIONS /api/settings",
-        "url": "/api/settings",
-        "method": "options",
-        "upload": false,
-        "skipBodyParsing": false,
-        "swaggerDoc": "",
-        "x": 200,
-        "y": 2400,
-        "wires": [
-            [
-                "new_cors_response"
-            ]
-        ]
-    },
-    {
-        "id": "new_cors_response",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "CORS Headers",
-        "func": "msg.statusCode = 204;\nmsg.payload = '';\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 440,
-        "y": 2400,
-        "wires": [
-            [
-                "new_options_response"
-            ]
-        ]
-    },
-    {
-        "id": "new_options_response",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return CORS",
-        "statusCode": "",
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
-        },
-        "x": 660,
-        "y": 2400,
-        "wires": []
-    },
-    {
-        "id": "mqtt_request_settings_in",
-        "type": "mqtt in",
-        "z": "bd6bb11c58fb203e",
-        "name": "Request Settings",
-        "topic": "doorbell/cmd/request_settings",
-        "qos": "1",
-        "datatype": "json",
-        "broker": "0506134bb93b271d",
-        "nl": false,
-        "rap": false,
-        "inputs": 0,
-        "x": 190,
-        "y": 2500,
-        "wires": [
-            [
-                "fetch_settings_for_mqtt"
-            ]
-        ]
-    },
-    {
-        "id": "fetch_settings_for_mqtt",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Prepare Settings Query",
-        "func": "msg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 460,
-        "y": 2500,
-        "wires": [
-            [
-                "http_get_settings_mqtt"
-            ]
-        ]
-    },
-    {
-        "id": "http_get_settings_mqtt",
-        "type": "http request",
-        "z": "bd6bb11c58fb203e",
-        "name": "Query Settings DB",
-        "method": "GET",
-        "ret": "txt",
-        "paytoqs": "ignore",
-        "url": "",
-        "tls": "",
-        "persist": false,
-        "proxy": "",
-        "insecureHTTPParser": false,
-        "authType": "",
-        "x": 740,
-        "y": 2500,
-        "wires": [
-            [
-                "publish_settings_to_esp"
-            ]
-        ]
-    },
-    {
-        "id": "publish_settings_to_esp",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Publish Settings to ESP32",
-        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    data = JSON.parse(data);\n}\n\nconst settings = Array.isArray(data) ? data[0] : data;\n\nmsg.payload = {\n    action: 'sync_settings',\n    speaker_volume: settings.speaker_volume ?? 75,\n    pir_enabled: settings.pir_enabled !== false,\n    alarm_enabled: settings.alarm_enabled !== false,\n    notifications_enabled: settings.notifications_enabled !== false,\n    do_not_disturb: settings.do_not_disturb === true,\n    alarm_auto_play: settings.alarm_auto_play !== false,\n    temp_enabled: settings.temp_enabled !== false\n};\nmsg.topic = 'doorbell/cmd/settings';\nmsg.qos = 1;\n\nnode.warn('📤 Publishing settings to ESP32: ' + JSON.stringify(msg.payload));\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1040,
-        "y": 2500,
-        "wires": [
-            [
-                "mqtt_publish_settings"
-            ]
-        ]
-    },
-    {
-        "id": "mqtt_publish_settings",
-        "type": "mqtt out",
-        "z": "bd6bb11c58fb203e",
-        "name": "Publish to doorbell/cmd/settings",
-        "topic": "",
-        "qos": "1",
-        "retain": "false",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "0506134bb93b271d",
-        "x": 1370,
-        "y": 2500,
-        "wires": []
-    },
-    {
-        "id": "get_email_recipients",
-        "type": "http in",
-        "z": "bd6bb11c58fb203e",
-        "name": "GET /api/email-recipients",
-        "url": "/api/email-recipients",
-        "method": "get",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 200,
-        "y": 2600,
-        "wires": [
-            [
-                "query_recipients"
-            ]
-        ]
-    },
-    {
-        "id": "query_recipients",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Query Recipients",
-        "func": "msg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/email_recipients?order=created_at.desc';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "libs": [],
-        "x": 460,
-        "y": 2600,
-        "wires": [
-            [
-                "http_get_recipients"
-            ]
-        ]
-    },
-    {
-        "id": "http_get_recipients",
-        "type": "http request",
-        "z": "bd6bb11c58fb203e",
-        "name": "GET Recipients",
-        "method": "GET",
-        "ret": "txt",
-        "url": "",
-        "x": 680,
-        "y": 2600,
-        "wires": [
-            [
-                "format_recipients_response"
-            ]
-        ]
-    },
-    {
-        "id": "format_recipients_response",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Format Response",
-        "func": "let data = JSON.parse(msg.payload);\nmsg.statusCode = 200;\nmsg.payload = { success: true, data: data };\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "libs": [],
-        "x": 900,
-        "y": 2600,
-        "wires": [
-            [
-                "recipients_http_response"
-            ]
-        ]
-    },
-    {
-        "id": "recipients_http_response",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return Response",
-        "statusCode": "",
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
-        },
-        "x": 1110,
-        "y": 2600,
-        "wires": []
-    },
-    {
-        "id": "post_email_recipient",
-        "type": "http in",
-        "z": "bd6bb11c58fb203e",
-        "name": "POST /api/email-recipients",
-        "url": "/api/email-recipients",
-        "method": "post",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 210,
-        "y": 2700,
-        "wires": [
-            [
-                "validate_recipient"
-            ]
-        ]
-    },
-    {
-        "id": "validate_recipient",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Validate & Prepare",
-        "func": "const payload = msg.payload;\n\nif (!payload.email || !payload.email.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/)) {\n    msg.statusCode = 400;\n    msg.payload = { success: false, error: 'Invalid email address' };\n    return [null, msg];\n}\n\nconst newRecipient = {\n    email: payload.email,\n    name: payload.name || null,\n    is_active: payload.is_active !== false,\n    notification_types: payload.notification_types || { button: true, pir: true, pir_alert: true, voice: true }\n};\n\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/email_recipients';\nmsg.method = 'POST';\nmsg.payload = newRecipient;\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn [msg, null];",
-        "outputs": 2,
-        "timeout": 0,
-        "noerr": 0,
-        "libs": [],
-        "x": 480,
-        "y": 2700,
-        "wires": [
-            [
-                "http_insert_recipient"
-            ],
-            [
-                "recipients_http_response"
-            ]
-        ]
-    },
-    {
-        "id": "http_insert_recipient",
-        "type": "http request",
-        "z": "bd6bb11c58fb203e",
-        "name": "Insert Recipient",
-        "method": "POST",
-        "ret": "txt",
-        "url": "",
-        "x": 700,
-        "y": 2700,
-        "wires": [
-            [
-                "format_insert_response"
-            ]
-        ]
-    },
-    {
-        "id": "format_insert_response",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Format Insert Response",
-        "func": "let data = JSON.parse(msg.payload);\nmsg.statusCode = 201;\nmsg.payload = { success: true, data: Array.isArray(data) ? data[0] : data };\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "libs": [],
-        "x": 930,
-        "y": 2700,
-        "wires": [
-            [
-                "recipients_http_response"
-            ]
-        ]
-    },
-    {
-        "id": "delete_email_recipient",
-        "type": "http in",
-        "z": "bd6bb11c58fb203e",
-        "name": "DELETE /api/email-recipients/:id",
-        "url": "/api/email-recipients/:id",
-        "method": "delete",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 220,
-        "y": 2800,
-        "wires": [
-            [
-                "prepare_delete"
-            ]
-        ]
-    },
-    {
-        "id": "prepare_delete",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Prepare Delete",
-        "func": "const id = msg.req.params.id;\n\nif (!id) {\n    msg.statusCode = 400;\n    msg.payload = { success: false, error: 'Missing recipient ID' };\n    return [null, msg];\n}\n\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/email_recipients?id=eq.' + id;\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\n\nreturn [msg, null];",
-        "outputs": 2,
-        "timeout": 0,
-        "noerr": 0,
-        "libs": [],
-        "x": 470,
-        "y": 2800,
-        "wires": [
-            [
-                "http_delete_recipient"
-            ],
-            [
-                "recipients_http_response"
-            ]
-        ]
-    },
-    {
-        "id": "http_delete_recipient",
-        "type": "http request",
-        "z": "bd6bb11c58fb203e",
-        "name": "Delete Recipient",
-        "method": "DELETE",
-        "ret": "txt",
-        "url": "",
-        "x": 690,
-        "y": 2800,
-        "wires": [
-            [
-                "format_delete_response"
-            ]
-        ]
-    },
-    {
-        "id": "format_delete_response",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Format Delete Response",
-        "func": "msg.statusCode = 200;\nmsg.payload = { success: true, message: 'Recipient deleted' };\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "libs": [],
-        "x": 920,
-        "y": 2800,
-        "wires": [
-            [
-                "recipients_http_response"
-            ]
-        ]
-    },
-    {
-        "id": "options_email_recipients",
-        "type": "http in",
-        "z": "bd6bb11c58fb203e",
-        "name": "OPTIONS /api/email-recipients",
-        "url": "/api/email-recipients",
-        "method": "options",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 220,
-        "y": 2900,
-        "wires": [
-            [
-                "cors_recipients"
-            ]
-        ]
-    },
-    {
-        "id": "cors_recipients",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "CORS Headers",
-        "func": "msg.statusCode = 204;\nmsg.payload = '';\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "libs": [],
-        "x": 490,
-        "y": 2900,
-        "wires": [
-            [
-                "recipients_http_response"
-            ]
-        ]
-    },
-    {
-        "id": "3b5ca85c7e8c82e7",
-        "type": "http in",
-        "z": "bd6bb11c58fb203e",
-        "name": "POST /api/commands/snapshot",
-        "url": "/api/commands/snapshot",
-        "method": "post",
-        "upload": false,
-        "skipBodyParsing": false,
-        "swaggerDoc": "",
-        "x": 210,
-        "y": 940,
-        "wires": [
-            [
-                "dc269e73af7ad4a0"
-            ]
-        ]
-    },
-    {
-        "id": "dc269e73af7ad4a0",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": " Generate Command ID",
-        "func": "// Node: Function - Generate Snapshot Command\nconst commandId = 'cmd_' + Date.now() + '_snapshot';\nconst timestamp = Math.floor(Date.now() / 1000);\n\n// MQTT Out node publishes msg.payload, NOT msg.mqttPayload!\nmsg.payload = {\n    action: 'capture',\n    command_id: commandId,\n    timestamp: timestamp\n};\n\n// Store for HTTP response\nmsg.commandId = commandId;\nmsg.timestamp = timestamp;\n\n// Prepare MQTT topic\nmsg.topic = 'doorbell/cmd/snapshot';\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 590,
-        "y": 940,
-        "wires": [
-            [
-                "2a96d82ad8c21e0a",
-                "ac1b81505cf19f62"
-            ]
-        ]
-    },
-    {
-        "id": "options_siren",
-        "type": "http in",
-        "z": "bd6bb11c58fb203e",
-        "name": "OPTIONS /api/commands/siren",
-        "url": "/api/commands/siren",
-        "method": "options",
-        "upload": false,
-        "skipBodyParsing": false,
-        "swaggerDoc": "",
-        "x": 210,
-        "y": 1040,
-        "wires": [
-            [
-                "cors_siren_response"
-            ]
-        ]
-    },
-    {
-        "id": "cors_siren_response",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "CORS Headers",
-        "func": "msg.statusCode = 204;\nmsg.headers = {\n    'Access-Control-Allow-Origin': '*',\n    'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',\n    'Access-Control-Allow-Headers': 'Content-Type'\n};\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 500,
-        "y": 1040,
-        "wires": [
-            [
-                "http_siren_options_response"
-            ]
-        ]
-    },
-    {
-        "id": "http_siren_options_response",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return CORS",
-        "statusCode": "",
-        "headers": {},
-        "x": 760,
-        "y": 1040,
-        "wires": []
-    },
-    {
-        "id": "http_post_siren",
-        "type": "http in",
-        "z": "bd6bb11c58fb203e",
-        "name": "POST /api/commands/siren",
-        "url": "/api/commands/siren",
-        "method": "post",
-        "upload": false,
-        "skipBodyParsing": false,
-        "swaggerDoc": "",
-        "x": 200,
-        "y": 1140,
-        "wires": [
-            [
-                "generate_siren_command"
-            ]
-        ]
-    },
-    {
-        "id": "generate_siren_command",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Generate Siren Command",
-        "func": "// Node: Function - Generate Siren Command\nconst commandId = 'cmd_' + Date.now() + '_siren';\nconst timestamp = Math.floor(Date.now() / 1000);\nconst action = msg.payload.action || 'ON';\nconst duration = msg.payload.duration || 15;\n\n// MQTT message\nconst mqttMsg = {\n    payload: {\n        action: action,\n        duration: duration,\n        command_id: commandId,\n        timestamp: timestamp\n    },\n    topic: 'doorbell/cmd/siren',\n    qos: 1\n};\n\n// HTTP response message (preserve req/res)\nconst httpMsg = {\n    req: msg.req,\n    res: msg.res,\n    payload: {\n        success: true,\n        message: 'Siren command sent',\n        command_id: commandId,\n        action: action\n    },\n    statusCode: 200\n};\n\nreturn [mqttMsg, httpMsg];",
-        "outputs": 2,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 550,
-        "y": 1140,
-        "wires": [
-            [
-                "mqtt_siren_out"
-            ],
-            [
-                "return_siren_success"
-            ]
-        ]
-    },
-    {
-        "id": "mqtt_siren_out",
-        "type": "mqtt out",
-        "z": "bd6bb11c58fb203e",
-        "name": "Publish Siren Command",
-        "topic": "",
-        "qos": "",
-        "retain": "false",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "0506134bb93b271d",
-        "x": 990,
-        "y": 1120,
-        "wires": []
-    },
-    {
-        "id": "return_siren_success",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return Success",
-        "statusCode": "",
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
-        },
-        "x": 960,
-        "y": 1180,
-        "wires": []
-    },
-    {
-        "id": "2a96d82ad8c21e0a",
-        "type": "mqtt out",
-        "z": "bd6bb11c58fb203e",
-        "name": "Publish Snapshot Command",
-        "topic": "",
-        "qos": "1",
-        "retain": "false",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "0506134bb93b271d",
-        "x": 980,
-        "y": 880,
-        "wires": []
-    },
-    {
-        "id": "ac1b81505cf19f62",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Format HTTP Response ",
-        "func": "// Node: Function - Format Snapshot Response\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    message: \"Snapshot command sent to ESP32\",\n    command_id: msg.commandId,\n    timestamp: msg.timestamp\n};\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 970,
-        "y": 960,
-        "wires": [
-            [
-                "de154ac19c9082e2"
-            ]
-        ]
-    },
-    {
-        "id": "de154ac19c9082e2",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return Snapshot Response",
-        "statusCode": "",
-        "headers": {},
-        "x": 1320,
-        "y": 960,
-        "wires": []
-    },
-    {
-        "id": "d6994a03a3653bad",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": " Format Success Response",
-        "func": "// Node: Function - Format Speak Response\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    message: \"Audio playback command sent to ESP32\",\n    command_id: msg.commandId,\n    audio_url: msg.audioUrl,\n    volume: msg.volume,\n    timestamp: msg.timestamp\n};\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 880,
-        "y": 1400,
-        "wires": [
-            [
-                "ddc987ed11cbdfe1"
-            ]
-        ]
-    },
-    {
-        "id": "get_quick_responses_http",
-        "type": "http in",
-        "z": "bd6bb11c58fb203e",
-        "name": "GET /api/quick-responses",
-        "url": "/api/quick-responses",
-        "method": "get",
-        "upload": false,
-        "skipBodyParsing": false,
-        "swaggerDoc": "",
-        "x": 180,
-        "y": 2900,
-        "wires": [
-            [
-                "build_quick_responses_query"
-            ]
-        ]
-    },
-    {
-        "id": "build_quick_responses_query",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Build Query",
-        "func": "// Query all active quick_responses, ordered by id\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/quick_responses?is_active=eq.true&order=id.asc';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 470,
-        "y": 2900,
-        "wires": [
-            [
-                "query_quick_responses_db"
-            ]
-        ]
-    },
-    {
-        "id": "query_quick_responses_db",
-        "type": "http request",
-        "z": "bd6bb11c58fb203e",
-        "name": "Query Quick Responses",
-        "method": "GET",
-        "ret": "txt",
-        "paytoqs": "ignore",
-        "url": "",
-        "tls": "",
-        "persist": false,
-        "proxy": "",
-        "insecureHTTPParser": false,
-        "authType": "",
-        "senderr": false,
-        "headers": [],
-        "x": 760,
-        "y": 2900,
-        "wires": [
-            [
-                "format_quick_responses_response"
-            ]
-        ]
-    },
-    {
-        "id": "format_quick_responses_response",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Format Response",
-        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        data = [];\n    }\n}\n\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    data: data\n};\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1050,
-        "y": 2900,
-        "wires": [
-            [
-                "http_quick_responses_response"
-            ]
-        ]
-    },
-    {
-        "id": "http_quick_responses_response",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return Quick Responses",
-        "statusCode": "",
-        "headers": {},
-        "x": 1330,
-        "y": 2900,
-        "wires": []
-    },
-    {
-        "id": "options_quick_response_http",
-        "type": "http in",
-        "z": "bd6bb11c58fb203e",
-        "name": "OPTIONS /api/quick-responses/:title",
-        "url": "/api/quick-responses/:title",
-        "method": "options",
-        "upload": false,
-        "skipBodyParsing": false,
-        "swaggerDoc": "",
-        "x": 180,
-        "y": 3040,
-        "wires": [
-            [
-                "cors_quick_response_options"
-            ]
-        ]
-    },
-    {
-        "id": "cors_quick_response_options",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "CORS Headers",
-        "func": "msg.statusCode = 204;\nmsg.payload = '';\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 460,
-        "y": 3040,
-        "wires": [
-            [
-                "http_quick_response_options"
-            ]
-        ]
-    },
-    {
-        "id": "http_quick_response_options",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return CORS",
-        "statusCode": "",
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
-        },
-        "x": 670,
-        "y": 3040,
-        "wires": []
-    },
-    {
-        "id": "patch_quick_response_http",
-        "type": "http in",
-        "z": "bd6bb11c58fb203e",
-        "name": "PUT /api/quick-responses/:title",
-        "url": "/api/quick-responses/:title",
-        "method": "put",
-        "upload": false,
-        "skipBodyParsing": false,
-        "swaggerDoc": "",
-        "x": 180,
-        "y": 3100,
-        "wires": [
-            [
-                "validate_patch_quick_response"
-            ]
-        ]
-    },
-    {
-        "id": "validate_patch_quick_response",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Validate & Prepare Update",
-        "func": "const title = msg.req.params.title;\nconst payload = msg.payload;\n\n// Validate title\nconst allowedTitles = ['wait', 'notHome', 'busy', 'package'];\nif (!title || !allowedTitles.includes(title)) {\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Invalid title\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"title\",\n            message: \"title must be one of: wait, notHome, busy, package\"\n        }\n    };\n    return [null, msg];\n}\n\n// Validate audio_url\nif (!payload.audio_url || typeof payload.audio_url !== 'string') {\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Validation failed\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"audio_url\",\n            message: \"audio_url is required and must be a string\"\n        }\n    };\n    return [null, msg];\n}\n\n// Prepare update\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/quick_responses?title=eq.' + title;\nmsg.method = 'PATCH';\nmsg.payload = {\n    audio_url: payload.audio_url,\n    created_at: new Date().toISOString()\n};\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=minimal'\n};\n\nmsg.titleParam = title;\n\nreturn [msg, null];",
-        "outputs": 2,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 540,
-        "y": 3100,
-        "wires": [
-            [
-                "update_quick_response_db"
-            ],
-            [
-                "http_quick_response_error"
-            ]
-        ]
-    },
-    {
-        "id": "update_quick_response_db",
-        "type": "http request",
-        "z": "bd6bb11c58fb203e",
-        "name": "Update Quick Response",
-        "method": "use",
-        "ret": "txt",
-        "paytoqs": "ignore",
-        "url": "",
-        "tls": "",
-        "persist": false,
-        "proxy": "",
-        "insecureHTTPParser": false,
-        "authType": "",
-        "senderr": false,
-        "headers": [],
-        "x": 870,
-        "y": 3080,
-        "wires": [
-            [
-                "query_updated_quick_response"
-            ]
-        ]
-    },
-    {
-        "id": "query_updated_quick_response",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Build Query for Full Record",
-        "func": "// After update, fetch the complete record\nconst title = msg.titleParam;\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/quick_responses?title=eq.' + title;\nmsg.method = 'GET';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 900,
-        "y": 3140,
-        "wires": [
-            [
-                "fetch_updated_quick_response"
-            ]
-        ]
-    },
-    {
-        "id": "fetch_updated_quick_response",
-        "type": "http request",
-        "z": "bd6bb11c58fb203e",
-        "name": "Get Full Record",
-        "method": "use",
-        "ret": "txt",
-        "paytoqs": "ignore",
-        "url": "",
-        "tls": "",
-        "persist": false,
-        "proxy": "",
-        "insecureHTTPParser": false,
-        "authType": "",
-        "senderr": false,
-        "headers": [],
-        "x": 1170,
-        "y": 3140,
-        "wires": [
-            [
-                "format_update_response"
-            ]
-        ]
-    },
-    {
-        "id": "format_update_response",
-        "type": "function",
-        "z": "bd6bb11c58fb203e",
-        "name": "Format Success Response",
-        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        data = [];\n    }\n}\n\nif (Array.isArray(data) && data.length > 0) {\n    msg.statusCode = 200;\n    msg.payload = {\n        success: true,\n        message: \"Quick response updated successfully\",\n        data: data[0]\n    };\n} else {\n    msg.statusCode = 404;\n    msg.payload = {\n        success: false,\n        error: \"Quick response not found\",\n        code: \"NOT_FOUND\"\n    };\n}\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1170,
-        "y": 3080,
-        "wires": [
-            [
-                "http_quick_response_success"
-            ]
-        ]
-    },
-    {
-        "id": "http_quick_response_success",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return Success",
-        "statusCode": "",
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
-        },
-        "x": 1430,
-        "y": 3080,
-        "wires": []
-    },
-    {
-        "id": "http_quick_response_error",
-        "type": "http response",
-        "z": "bd6bb11c58fb203e",
-        "name": "Return Error",
-        "statusCode": "",
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
-        },
-        "x": 830,
-        "y": 3180,
+        "x": 940,
+        "y": 460,
         "wires": []
     },
     {
@@ -1794,7 +413,7 @@
         "rap": false,
         "inputs": 0,
         "x": 240,
-        "y": 1600,
+        "y": 720,
         "wires": [
             [
                 "mqtt_test_debug"
@@ -1815,13 +434,1348 @@
         "statusVal": "payload",
         "statusType": "auto",
         "x": 640,
-        "y": 1600,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "1992c9765106273a",
+        "type": "mqtt in",
+        "z": "e38e81b07fd63314",
+        "name": "ESP32 Snapshot Response",
+        "topic": "doorbell/evt/snapshot",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "0506134bb93b271d",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 300,
+        "y": 180,
+        "wires": [
+            [
+                "8a56a7e9772f058a"
+            ]
+        ]
+    },
+    {
+        "id": "8a56a7e9772f058a",
+        "type": "function",
+        "z": "e38e81b07fd63314",
+        "name": "Parse Snapshot Response",
+        "func": "// Node: Function - Parse Snapshot Response\nconst payload = msg.payload;\n\n// Validate payload\nif (!payload.image_url || !payload.timestamp) {\n    node.warn('Invalid snapshot response payload');\n    return null;\n}\n\n// Prepare Supabase insert\nmsg.payload = {\n    event_type: 'snapshot',\n    image_url: payload.image_url,\n    description: 'Chụp ảnh thủ công',\n    created_at: new Date(payload.timestamp * 1000).toISOString(),\n    metadata: {\n        source: 'manual_command',\n        command_id: payload.command_id || null,\n        raw_timestamp: payload.timestamp\n    }\n};\n\n// Prepare Supabase headers\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 180,
+        "wires": [
+            [
+                "5e2322ac291b5f6c"
+            ]
+        ]
+    },
+    {
+        "id": "5e2322ac291b5f6c",
+        "type": "http request",
+        "z": "e38e81b07fd63314",
+        "name": "Insert Snapshot to DB",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/events",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 840,
+        "y": 180,
+        "wires": [
+            [
+                "f5ff55aa07fd5638"
+            ]
+        ]
+    },
+    {
+        "id": "f5ff55aa07fd5638",
+        "type": "debug",
+        "z": "e38e81b07fd63314",
+        "name": " Snapshot Saved",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1100,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "3b5ca85c7e8c82e7",
+        "type": "http in",
+        "z": "e38e81b07fd63314",
+        "name": "POST /api/commands/snapshot",
+        "url": "/api/commands/snapshot",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 310,
+        "y": 300,
+        "wires": [
+            [
+                "dc269e73af7ad4a0"
+            ]
+        ]
+    },
+    {
+        "id": "dc269e73af7ad4a0",
+        "type": "function",
+        "z": "e38e81b07fd63314",
+        "name": " Generate Command ID",
+        "func": "// Node: Function - Generate Snapshot Command\nconst commandId = 'cmd_' + Date.now() + '_snapshot';\nconst timestamp = Math.floor(Date.now() / 1000);\n\n// MQTT Out node publishes msg.payload, NOT msg.mqttPayload!\nmsg.payload = {\n    action: 'capture',\n    command_id: commandId,\n    timestamp: timestamp\n};\n\n// Store for HTTP response\nmsg.commandId = commandId;\nmsg.timestamp = timestamp;\n\n// Prepare MQTT topic\nmsg.topic = 'doorbell/cmd/snapshot';\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 690,
+        "y": 300,
+        "wires": [
+            [
+                "2a96d82ad8c21e0a",
+                "ac1b81505cf19f62"
+            ]
+        ]
+    },
+    {
+        "id": "2a96d82ad8c21e0a",
+        "type": "mqtt out",
+        "z": "e38e81b07fd63314",
+        "name": "Publish Snapshot Command",
+        "topic": "",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "0506134bb93b271d",
+        "x": 1080,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "ac1b81505cf19f62",
+        "type": "function",
+        "z": "e38e81b07fd63314",
+        "name": "Format HTTP Response ",
+        "func": "// Node: Function - Format Snapshot Response\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    message: \"Snapshot command sent to ESP32\",\n    command_id: msg.commandId,\n    timestamp: msg.timestamp\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1070,
+        "y": 320,
+        "wires": [
+            [
+                "de154ac19c9082e2"
+            ]
+        ]
+    },
+    {
+        "id": "de154ac19c9082e2",
+        "type": "http response",
+        "z": "e38e81b07fd63314",
+        "name": "Return Snapshot Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1420,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "get_quick_responses_http",
+        "type": "http in",
+        "z": "0f2c315966152f10",
+        "name": "GET /api/quick-responses",
+        "url": "/api/quick-responses",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 230,
+        "y": 160,
+        "wires": [
+            [
+                "build_quick_responses_query"
+            ]
+        ]
+    },
+    {
+        "id": "build_quick_responses_query",
+        "type": "function",
+        "z": "0f2c315966152f10",
+        "name": "Build Query",
+        "func": "// Query all active quick_responses, ordered by id\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/quick_responses?is_active=eq.true&order=id.asc';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 160,
+        "wires": [
+            [
+                "query_quick_responses_db"
+            ]
+        ]
+    },
+    {
+        "id": "query_quick_responses_db",
+        "type": "http request",
+        "z": "0f2c315966152f10",
+        "name": "Query Quick Responses",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 810,
+        "y": 160,
+        "wires": [
+            [
+                "format_quick_responses_response"
+            ]
+        ]
+    },
+    {
+        "id": "format_quick_responses_response",
+        "type": "function",
+        "z": "0f2c315966152f10",
+        "name": "Format Response",
+        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        data = [];\n    }\n}\n\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    data: data\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1110,
+        "y": 160,
+        "wires": [
+            [
+                "http_quick_responses_response"
+            ]
+        ]
+    },
+    {
+        "id": "http_quick_responses_response",
+        "type": "http response",
+        "z": "0f2c315966152f10",
+        "name": "Return Quick Responses",
+        "statusCode": "",
+        "headers": {},
+        "x": 1470,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "options_quick_response_http",
+        "type": "http in",
+        "z": "0f2c315966152f10",
+        "name": "OPTIONS /api/quick-responses/:title",
+        "url": "/api/quick-responses/:title",
+        "method": "options",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 260,
+        "y": 420,
+        "wires": [
+            [
+                "cors_quick_response_options"
+            ]
+        ]
+    },
+    {
+        "id": "cors_quick_response_options",
+        "type": "function",
+        "z": "0f2c315966152f10",
+        "name": "CORS Headers",
+        "func": "msg.statusCode = 204;\nmsg.payload = '';\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 420,
+        "wires": [
+            [
+                "http_quick_response_options"
+            ]
+        ]
+    },
+    {
+        "id": "http_quick_response_options",
+        "type": "http response",
+        "z": "0f2c315966152f10",
+        "name": "Return CORS",
+        "statusCode": "",
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "x": 880,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "patch_quick_response_http",
+        "type": "http in",
+        "z": "0f2c315966152f10",
+        "name": "PUT /api/quick-responses/:title",
+        "url": "/api/quick-responses/:title",
+        "method": "put",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 240,
+        "y": 260,
+        "wires": [
+            [
+                "validate_patch_quick_response"
+            ]
+        ]
+    },
+    {
+        "id": "validate_patch_quick_response",
+        "type": "function",
+        "z": "0f2c315966152f10",
+        "name": "Validate & Prepare Update",
+        "func": "const title = msg.req.params.title;\nconst payload = msg.payload;\n\n// Validate title\nconst allowedTitles = ['wait', 'notHome', 'busy', 'package'];\nif (!title || !allowedTitles.includes(title)) {\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Invalid title\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"title\",\n            message: \"title must be one of: wait, notHome, busy, package\"\n        }\n    };\n    return [null, msg];\n}\n\n// Validate audio_url\nif (!payload.audio_url || typeof payload.audio_url !== 'string') {\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Validation failed\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"audio_url\",\n            message: \"audio_url is required and must be a string\"\n        }\n    };\n    return [null, msg];\n}\n\n// Prepare update\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/quick_responses?title=eq.' + title;\nmsg.method = 'PATCH';\nmsg.payload = {\n    audio_url: payload.audio_url,\n    created_at: new Date().toISOString()\n};\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=minimal'\n};\n\nmsg.titleParam = title;\n\nreturn [msg, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 260,
+        "wires": [
+            [
+                "update_quick_response_db"
+            ],
+            [
+                "http_quick_response_error"
+            ]
+        ]
+    },
+    {
+        "id": "update_quick_response_db",
+        "type": "http request",
+        "z": "0f2c315966152f10",
+        "name": "Update Quick Response",
+        "method": "use",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 890,
+        "y": 240,
+        "wires": [
+            [
+                "query_updated_quick_response"
+            ]
+        ]
+    },
+    {
+        "id": "query_updated_quick_response",
+        "type": "function",
+        "z": "0f2c315966152f10",
+        "name": "Build Query for Full Record",
+        "func": "// After update, fetch the complete record\nconst title = msg.titleParam;\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/quick_responses?title=eq.' + title;\nmsg.method = 'GET';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 920,
+        "y": 300,
+        "wires": [
+            [
+                "fetch_updated_quick_response"
+            ]
+        ]
+    },
+    {
+        "id": "fetch_updated_quick_response",
+        "type": "http request",
+        "z": "0f2c315966152f10",
+        "name": "Get Full Record",
+        "method": "use",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1190,
+        "y": 300,
+        "wires": [
+            [
+                "format_update_response"
+            ]
+        ]
+    },
+    {
+        "id": "format_update_response",
+        "type": "function",
+        "z": "0f2c315966152f10",
+        "name": "Format Success Response",
+        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        data = [];\n    }\n}\n\nif (Array.isArray(data) && data.length > 0) {\n    msg.statusCode = 200;\n    msg.payload = {\n        success: true,\n        message: \"Quick response updated successfully\",\n        data: data[0]\n    };\n} else {\n    msg.statusCode = 404;\n    msg.payload = {\n        success: false,\n        error: \"Quick response not found\",\n        code: \"NOT_FOUND\"\n    };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1190,
+        "y": 240,
+        "wires": [
+            [
+                "http_quick_response_success"
+            ]
+        ]
+    },
+    {
+        "id": "http_quick_response_success",
+        "type": "http response",
+        "z": "0f2c315966152f10",
+        "name": "Return Success",
+        "statusCode": "",
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "x": 1450,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "http_quick_response_error",
+        "type": "http response",
+        "z": "0f2c315966152f10",
+        "name": "Return Error",
+        "statusCode": "",
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "x": 850,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "d79d32f14038a8f2",
+        "type": "http in",
+        "z": "0f2c315966152f10",
+        "name": "POST /api/commands/speak",
+        "url": "/api/commands/speak",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 240,
+        "y": 600,
+        "wires": [
+            [
+                "9a6f9dfc1cf6fb65"
+            ]
+        ]
+    },
+    {
+        "id": "9a6f9dfc1cf6fb65",
+        "type": "function",
+        "z": "0f2c315966152f10",
+        "name": "Validate & Prepare",
+        "func": "// Node: Function - Validate Speak Command\nnode.warn('📨 [SPEAK] Request received');\nnode.warn('📦 Payload: ' + JSON.stringify(msg.payload));\n\nconst payload = msg.payload;\n\n// Validation\nif (!payload.audio_url) {\n    node.error('❌ Validation failed: audio_url missing');\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Validation failed\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"audio_url\",\n            message: \"audio_url is required\"\n        }\n    };\n    return [null, msg]; // Send to error output\n}\n\n// Validate volume\nconst volume = payload.volume || 80;\nif (volume < 0 || volume > 100) {\n    node.error('❌ Validation failed: volume out of range');\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: \"Validation failed\",\n        code: \"VALIDATION_ERROR\",\n        details: {\n            field: \"volume\",\n            message: \"volume must be between 0 and 100\"\n        }\n    };\n    return [null, msg];\n}\n\n// Generate command\nconst commandId = 'cmd_' + Date.now() + '_speak';\nconst timestamp = Math.floor(Date.now() / 1000);\n\n// MQTT payload\nmsg.mqttPayload = {\n    command_id: commandId,\n    audio_url: payload.audio_url,\n    volume: volume,\n    timestamp: timestamp\n};\n\nmsg.commandId = commandId;\nmsg.audioUrl = payload.audio_url;\nmsg.volume = volume;\nmsg.timestamp = timestamp;\nmsg.topic = 'doorbell/cmd/speak';\n\nnode.warn('✅ Validation passed');\nnode.warn('🎵 Audio URL: ' + payload.audio_url);\nnode.warn('🔉 Volume: ' + volume);\nnode.warn('📡 MQTT Topic: ' + msg.topic);\n\nreturn [msg, null]; // Send to success output",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 600,
+        "wires": [
+            [
+                "prepare_speak_mqtt",
+                "d6994a03a3653bad"
+            ],
+            [
+                "869e6f35da0d5eef"
+            ]
+        ]
+    },
+    {
+        "id": "prepare_speak_mqtt",
+        "type": "function",
+        "z": "0f2c315966152f10",
+        "name": "Prepare MQTT Payload",
+        "func": "// Set msg.payload for MQTT out node\nnode.warn('📡 [MQTT] Preparing to publish');\nnode.warn('📡 Topic: ' + msg.topic);\nnode.warn('📡 Payload: ' + JSON.stringify(msg.mqttPayload));\n\n// MQTT out node auto-converts object to JSON\\nmsg.payload = msg.mqttPayload;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 870,
+        "y": 500,
+        "wires": [
+            [
+                "ce3e4277b0986455"
+            ]
+        ]
+    },
+    {
+        "id": "ce3e4277b0986455",
+        "type": "mqtt out",
+        "z": "0f2c315966152f10",
+        "name": "Publish Speak Command",
+        "topic": "",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "0506134bb93b271d",
+        "x": 1210,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "ddc987ed11cbdfe1",
+        "type": "http response",
+        "z": "0f2c315966152f10",
+        "name": "Return Success",
+        "statusCode": "",
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "x": 1220,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "869e6f35da0d5eef",
+        "type": "http response",
+        "z": "0f2c315966152f10",
+        "name": "Return Error",
+        "statusCode": "",
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "x": 870,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "d6994a03a3653bad",
+        "type": "function",
+        "z": "0f2c315966152f10",
+        "name": " Format Success Response",
+        "func": "// Node: Function - Format Speak Response\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    message: \"Audio playback command sent to ESP32\",\n    command_id: msg.commandId,\n    audio_url: msg.audioUrl,\n    volume: msg.volume,\n    timestamp: msg.timestamp\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 920,
+        "y": 600,
+        "wires": [
+            [
+                "ddc987ed11cbdfe1"
+            ]
+        ]
+    },
+    {
+        "id": "options_siren",
+        "type": "http in",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "OPTIONS /api/commands/siren",
+        "url": "/api/commands/siren",
+        "method": "options",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 270,
+        "y": 200,
+        "wires": [
+            [
+                "cors_siren_response"
+            ]
+        ]
+    },
+    {
+        "id": "cors_siren_response",
+        "type": "function",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "CORS Headers",
+        "func": "msg.statusCode = 204;\nmsg.headers = {\n    'Access-Control-Allow-Origin': '*',\n    'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',\n    'Access-Control-Allow-Headers': 'Content-Type'\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 200,
+        "wires": [
+            [
+                "http_siren_options_response"
+            ]
+        ]
+    },
+    {
+        "id": "http_siren_options_response",
+        "type": "http response",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "Return CORS",
+        "statusCode": "",
+        "headers": {},
+        "x": 820,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "http_post_siren",
+        "type": "http in",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "POST /api/commands/siren",
+        "url": "/api/commands/siren",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 260,
+        "y": 300,
+        "wires": [
+            [
+                "generate_siren_command"
+            ]
+        ]
+    },
+    {
+        "id": "generate_siren_command",
+        "type": "function",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "Generate Siren Command",
+        "func": "// Node: Function - Generate Siren Command\nconst commandId = 'cmd_' + Date.now() + '_siren';\nconst timestamp = Math.floor(Date.now() / 1000);\nconst action = msg.payload.action || 'ON';\nconst duration = msg.payload.duration || 15;\n\n// MQTT message\nconst mqttMsg = {\n    payload: {\n        action: action,\n        duration: duration,\n        command_id: commandId,\n        timestamp: timestamp\n    },\n    topic: 'doorbell/cmd/siren',\n    qos: 1\n};\n\n// HTTP response message (preserve req/res)\nconst httpMsg = {\n    req: msg.req,\n    res: msg.res,\n    payload: {\n        success: true,\n        message: 'Siren command sent',\n        command_id: commandId,\n        action: action\n    },\n    statusCode: 200\n};\n\nreturn [mqttMsg, httpMsg];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 300,
+        "wires": [
+            [
+                "mqtt_siren_out"
+            ],
+            [
+                "return_siren_success"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_siren_out",
+        "type": "mqtt out",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "Publish Siren Command",
+        "topic": "",
+        "qos": "",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "0506134bb93b271d",
+        "x": 1050,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "return_siren_success",
+        "type": "http response",
+        "z": "a7b8c9d0e1f2g3h4",
+        "name": "Return Success",
+        "statusCode": "",
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "x": 1020,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "new_get_settings",
+        "type": "http in",
+        "z": "f68aef237bdc79db",
+        "name": "GET /api/settings",
+        "url": "/api/settings",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 260,
+        "y": 140,
+        "wires": [
+            [
+                "new_query_settings"
+            ]
+        ]
+    },
+    {
+        "id": "new_query_settings",
+        "type": "function",
+        "z": "f68aef237bdc79db",
+        "name": "Fetch from Supabase",
+        "func": "msg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 140,
+        "wires": [
+            [
+                "new_http_get_settings"
+            ]
+        ]
+    },
+    {
+        "id": "new_http_get_settings",
+        "type": "http request",
+        "z": "f68aef237bdc79db",
+        "name": "GET Settings",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 730,
+        "y": 140,
+        "wires": [
+            [
+                "new_format_get_response"
+            ]
+        ]
+    },
+    {
+        "id": "new_format_get_response",
+        "type": "function",
+        "z": "f68aef237bdc79db",
+        "name": "Format Response",
+        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    data = JSON.parse(data);\n}\n\nconst settings = Array.isArray(data) ? data[0] : data;\n\nmsg.statusCode = 200;\nmsg.payload = {\n    success: true,\n    data: settings\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 940,
+        "y": 140,
+        "wires": [
+            [
+                "new_get_response"
+            ]
+        ]
+    },
+    {
+        "id": "new_get_response",
+        "type": "http response",
+        "z": "f68aef237bdc79db",
+        "name": "Return to Frontend",
+        "statusCode": "",
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "x": 1170,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "new_put_settings",
+        "type": "http in",
+        "z": "f68aef237bdc79db",
+        "name": "PUT /api/settings",
+        "url": "/api/settings",
+        "method": "put",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 260,
+        "y": 240,
+        "wires": [
+            [
+                "new_validate_settings"
+            ]
+        ]
+    },
+    {
+        "id": "new_validate_settings",
+        "type": "function",
+        "z": "f68aef237bdc79db",
+        "name": "Validate & Update DB",
+        "func": "const payload = msg.payload;\n\n// Validate volume\nif (payload.speaker_volume !== undefined && (payload.speaker_volume < 0 || payload.speaker_volume > 100)) {\n    msg.statusCode = 400;\n    msg.payload = { success: false, error: \"speaker_volume must be 0-100\" };\n    return [null, msg];\n}\n\n// Build update\nconst update = { updated_at: new Date().toISOString() };\nif (payload.alarm_enabled !== undefined) update.alarm_enabled = payload.alarm_enabled;\nif (payload.speaker_volume !== undefined) update.speaker_volume = payload.speaker_volume;\nif (payload.pir_enabled !== undefined) update.pir_enabled = payload.pir_enabled;\nif (payload.notifications_enabled !== undefined) update.notifications_enabled = payload.notifications_enabled;\nif (payload.do_not_disturb !== undefined) update.do_not_disturb = payload.do_not_disturb;\nif (payload.alarm_auto_play !== undefined) update.alarm_auto_play = payload.alarm_auto_play;\nif (payload.temp_enabled !== undefined) update.temp_enabled = payload.temp_enabled;\n\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.method = 'PATCH';\nmsg.payload = update;\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json'\n};\n\nreturn [msg, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 240,
+        "wires": [
+            [
+                "new_http_update"
+            ],
+            [
+                "new_error_response"
+            ]
+        ]
+    },
+    {
+        "id": "new_http_update",
+        "type": "http request",
+        "z": "f68aef237bdc79db",
+        "name": "Update in DB",
+        "method": "use",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 770,
+        "y": 220,
+        "wires": [
+            [
+                "new_fetch_updated"
+            ]
+        ]
+    },
+    {
+        "id": "new_fetch_updated",
+        "type": "function",
+        "z": "f68aef237bdc79db",
+        "name": "Fetch Updated Settings",
+        "func": "msg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.method = 'GET';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1010,
+        "y": 220,
+        "wires": [
+            [
+                "new_http_fetch"
+            ]
+        ]
+    },
+    {
+        "id": "new_http_fetch",
+        "type": "http request",
+        "z": "f68aef237bdc79db",
+        "name": "GET Updated",
+        "method": "use",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1230,
+        "y": 220,
+        "wires": [
+            [
+                "new_publish_and_respond"
+            ]
+        ]
+    },
+    {
+        "id": "new_publish_and_respond",
+        "type": "function",
+        "z": "f68aef237bdc79db",
+        "name": "Publish to MQTT & Format Response",
+        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    data = JSON.parse(data);\n}\n\nconst settings = Array.isArray(data) ? data[0] : data;\n\n// Publish to MQTT\nconst mqttMsg = {\n    payload: {\n        action: 'sync_settings',\n        speaker_volume: settings.speaker_volume ?? 75,\n        pir_enabled: settings.pir_enabled !== false,\n        alarm_enabled: settings.alarm_enabled !== false,\n        notifications_enabled: settings.notifications_enabled !== false,\n        do_not_disturb: settings.do_not_disturb === true,\n        alarm_auto_play: settings.alarm_auto_play !== false,\n        temp_enabled: settings.temp_enabled !== false\n    },\n    topic: 'doorbell/cmd/settings',\n    qos: 1\n};\n\n// HTTP response (preserve req/res)\nconst httpMsg = {\n    req: msg.req,\n    res: msg.res,\n    payload: {\n        success: true,\n        message: 'Settings updated',\n        data: settings\n    },\n    statusCode: 200\n};\n\nreturn [mqttMsg, httpMsg];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1520,
+        "y": 220,
+        "wires": [
+            [
+                "new_mqtt_out"
+            ],
+            [
+                "new_put_response"
+            ]
+        ]
+    },
+    {
+        "id": "new_mqtt_out",
+        "type": "mqtt out",
+        "z": "f68aef237bdc79db",
+        "name": "Publish to ESP32",
+        "topic": "",
+        "qos": "",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "0506134bb93b271d",
+        "x": 1820,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "new_put_response",
+        "type": "http response",
+        "z": "f68aef237bdc79db",
+        "name": "Return to Frontend",
+        "statusCode": "",
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "x": 1820,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "new_error_response",
+        "type": "http response",
+        "z": "f68aef237bdc79db",
+        "name": "Return Error",
+        "statusCode": "",
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "x": 760,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "new_options_settings",
+        "type": "http in",
+        "z": "f68aef237bdc79db",
+        "name": "OPTIONS /api/settings",
+        "url": "/api/settings",
+        "method": "options",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 280,
+        "y": 360,
+        "wires": [
+            [
+                "new_cors_response"
+            ]
+        ]
+    },
+    {
+        "id": "new_cors_response",
+        "type": "function",
+        "z": "f68aef237bdc79db",
+        "name": "CORS Headers",
+        "func": "msg.statusCode = 204;\nmsg.payload = '';\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 360,
+        "wires": [
+            [
+                "new_options_response"
+            ]
+        ]
+    },
+    {
+        "id": "new_options_response",
+        "type": "http response",
+        "z": "f68aef237bdc79db",
+        "name": "Return CORS",
+        "statusCode": "",
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "x": 820,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "mqtt_request_settings_in",
+        "type": "mqtt in",
+        "z": "f68aef237bdc79db",
+        "name": "Request Settings",
+        "topic": "doorbell/cmd/request_settings",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "0506134bb93b271d",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 260,
+        "y": 440,
+        "wires": [
+            [
+                "fetch_settings_for_mqtt"
+            ]
+        ]
+    },
+    {
+        "id": "fetch_settings_for_mqtt",
+        "type": "function",
+        "z": "f68aef237bdc79db",
+        "name": "Prepare Settings Query",
+        "func": "msg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 440,
+        "wires": [
+            [
+                "http_get_settings_mqtt"
+            ]
+        ]
+    },
+    {
+        "id": "http_get_settings_mqtt",
+        "type": "http request",
+        "z": "f68aef237bdc79db",
+        "name": "Query Settings DB",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "x": 820,
+        "y": 440,
+        "wires": [
+            [
+                "publish_settings_to_esp"
+            ]
+        ]
+    },
+    {
+        "id": "publish_settings_to_esp",
+        "type": "function",
+        "z": "f68aef237bdc79db",
+        "name": "Publish Settings to ESP32",
+        "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    data = JSON.parse(data);\n}\n\nconst settings = Array.isArray(data) ? data[0] : data;\n\nmsg.payload = {\n    action: 'sync_settings',\n    speaker_volume: settings.speaker_volume ?? 75,\n    pir_enabled: settings.pir_enabled !== false,\n    alarm_enabled: settings.alarm_enabled !== false,\n    notifications_enabled: settings.notifications_enabled !== false,\n    do_not_disturb: settings.do_not_disturb === true,\n    alarm_auto_play: settings.alarm_auto_play !== false,\n    temp_enabled: settings.temp_enabled !== false\n};\nmsg.topic = 'doorbell/cmd/settings';\nmsg.qos = 1;\n\nnode.warn('📤 Publishing settings to ESP32: ' + JSON.stringify(msg.payload));\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1120,
+        "y": 440,
+        "wires": [
+            [
+                "mqtt_publish_settings"
+            ]
+        ]
+    },
+    {
+        "id": "mqtt_publish_settings",
+        "type": "mqtt out",
+        "z": "f68aef237bdc79db",
+        "name": "Publish to doorbell/cmd/settings",
+        "topic": "",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "0506134bb93b271d",
+        "x": 1450,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "mqtt_voice_in",
+        "type": "mqtt in",
+        "z": "c6fb1e5c221b5203",
+        "name": "Voice Note Event",
+        "topic": "doorbell/evt/voice",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "0506134bb93b271d",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 240,
+        "y": 200,
+        "wires": [
+            [
+                "prepare_voice_insert"
+            ]
+        ]
+    },
+    {
+        "id": "prepare_voice_insert",
+        "type": "function",
+        "z": "c6fb1e5c221b5203",
+        "name": "Prepare Voice Insert",
+        "func": "const payload = msg.payload;\n\nif (!payload.audio_url || !payload.timestamp) {\n    node.warn('Invalid voice note payload');\n    return null;\n}\n\n// Convert duration_ms to duration_seconds (must be INTEGER for database)\nlet durationSeconds = 1; // Default to 1 second minimum\nif (payload.duration_seconds) {\n    durationSeconds = Math.ceil(payload.duration_seconds);\n} else if (payload.duration_ms) {\n    // Round up: 608ms -> 1s, 1200ms -> 2s\n    durationSeconds = Math.ceil(payload.duration_ms / 1000);\n}\n\nmsg.payload = {\n    audio_url: payload.audio_url,\n    duration_seconds: durationSeconds,\n    created_at: new Date(payload.timestamp * 1000).toISOString(),\n    metadata: {\n        source: 'doorbell_microphone',\n        device_id: payload.device_id || 'ESP32_DOORBELL',\n        description: 'Khách để lại lời nhắn',\n        raw_timestamp: payload.timestamp,\n        duration_ms: payload.duration_ms\n    }\n};\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nnode.warn('📝 Voice Note Insert: ' + JSON.stringify(msg.payload));\n\n// Store event data for email\nmsg.eventData = {\n    audio_url: msg.payload.audio_url,\n    duration_seconds: msg.payload.duration_seconds,\n    created_at: msg.payload.created_at\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 200,
+        "wires": [
+            [
+                "insert_voice_db"
+            ]
+        ]
+    },
+    {
+        "id": "insert_voice_db",
+        "type": "http request",
+        "z": "c6fb1e5c221b5203",
+        "name": "Insert Voice to DB",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/voice_notes",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 700,
+        "y": 200,
+        "wires": [
+            [
+                "log_voice_response",
+                "debug_voice"
+            ]
+        ]
+    },
+    {
+        "id": "log_voice_response",
+        "type": "function",
+        "z": "c6fb1e5c221b5203",
+        "name": "Log Voice Response",
+        "func": "node.warn('🔍 Voice Insert Response:');\nnode.warn('Status Code: ' + msg.statusCode);\nnode.warn('Payload: ' + JSON.stringify(msg.payload));\nnode.warn('Headers: ' + JSON.stringify(msg.headers));\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 950,
+        "y": 120,
+        "wires": [
+            [
+                "email_voice_note"
+            ]
+        ]
+    },
+    {
+        "id": "email_voice_note",
+        "type": "function",
+        "z": "c6fb1e5c221b5203",
+        "name": "Voice Email Flow",
+        "func": "// Only send email on success\nif (msg.statusCode !== 201 && msg.statusCode !== 200) {\n    return null;\n}\n\nconst voiceData = msg.eventData || {};\nconst eventData = {\n    type: 'voice',\n    audio_url: voiceData.audio_url,\n    duration: voiceData.duration_seconds,\n    timestamp: voiceData.created_at\n};\n\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nmsg.eventData = eventData;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1180,
+        "y": 120,
+        "wires": [
+            [
+                "get_dnd_voice"
+            ]
+        ]
+    },
+    {
+        "id": "get_dnd_voice",
+        "type": "http request",
+        "z": "c6fb1e5c221b5203",
+        "name": "Check DND",
+        "method": "GET",
+        "ret": "txt",
+        "url": "",
+        "x": 1380,
+        "y": 120,
+        "wires": [
+            [
+                "send_voice_email"
+            ]
+        ]
+    },
+    {
+        "id": "send_voice_email",
+        "type": "function",
+        "z": "c6fb1e5c221b5203",
+        "name": "Send Voice Email",
+        "func": "let settings = JSON.parse(msg.payload);\nif (Array.isArray(settings)) settings = settings[0];\n\nif (settings.do_not_disturb === true) return null;\n\nconst recipients = await axios.get(\n    'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/email_recipients?is_active=eq.true&notification_types->>voice=eq.true',\n    { headers: { 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8' } }\n);\n\nconst e = msg.eventData;\nconst messages = [];\n\nfor (const r of recipients.data) {\n    messages.push({\n        to: r.email,\n        topic: '🎤 New Voice Message',\n        payload: `<h2 style=\"color: #7c3aed;\">🎤 New Voice Message Received</h2><p>Someone left a voice message at your doorbell.</p><p><strong>Time:</strong> ${new Date(e.timestamp).toLocaleString('vi-VN')}</p><p><strong>Duration:</strong> ${e.duration} seconds</p><p><a href=\"${e.audio_url}\" style=\"background: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px;\">🎧 Listen to Voice Message</a></p><p style=\"color: #6b7280; font-size: 12px; margin-top: 20px;\">ESP32 Smart Doorbell</p>`,\n        from: 'ESP32 Doorbell <khoa199939@gmail.com>'\n    });\n}\n\nreturn [messages];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "libs": [
+            {
+                "var": "axios",
+                "module": "axios"
+            }
+        ],
+        "x": 1590,
+        "y": 120,
+        "wires": [
+            [
+                "email_out_voice"
+            ]
+        ]
+    },
+    {
+        "id": "email_out_voice",
+        "type": "e-mail",
+        "z": "c6fb1e5c221b5203",
+        "server": "smtp.gmail.com",
+        "port": "587",
+        "authtype": "BASIC",
+        "saslformat": false,
+        "token": "oauth2Response.access_token",
+        "secure": false,
+        "tls": false,
+        "name": "",
+        "dname": "Send Voice Email",
+        "x": 1810,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "debug_voice",
+        "type": "debug",
+        "z": "c6fb1e5c221b5203",
+        "name": "Voice DB Response",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 950,
+        "y": 280,
         "wires": []
     },
     {
         "id": "mqtt_pir_in",
         "type": "mqtt in",
-        "z": "e38e81b07fd63314",
+        "z": "1ab3a512540aedc7",
         "name": "PIR High Alert (Burst)",
         "topic": "doorbell/evt/pir_alert",
         "qos": "1",
@@ -1830,7 +1784,7 @@
         "nl": false,
         "rap": false,
         "inputs": 0,
-        "x": 160,
+        "x": 220,
         "y": 160,
         "wires": [
             [
@@ -1841,7 +1795,7 @@
     {
         "id": "split_images",
         "type": "function",
-        "z": "e38e81b07fd63314",
+        "z": "1ab3a512540aedc7",
         "name": "Split Burst Images",
         "func": "const payload = msg.payload;\n\nif (!payload.image_urls || !Array.isArray(payload.image_urls) || payload.image_urls.length === 0) {\n    node.warn('Invalid payload: missing or empty image_urls');\n    return null;\n}\n\nconst timestamp = payload.timestamp;\nconst baseTimestamp = new Date(timestamp * 1000).toISOString();\nconst description = payload.description || 'High alert burst images';\nconst level = payload.level || 'high';\n\nconst messages = [];\nfor (let i = 0; i < payload.image_urls.length; i++) {\n    const imageUrl = payload.image_urls[i];\n    \n    messages.push({\n        payload: {\n            event_type: 'motion_detected',\n            image_url: imageUrl,\n            created_at: baseTimestamp,\n            description: description,\n            metadata: {\n                level: level,\n                source: 'pir_sensor',\n                burst_sequence: i + 1,\n                total_burst: payload.count,\n                raw_timestamp: timestamp\n            }\n        },\n        headers: {\n            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n            'Content-Type': 'application/json',\n            'Prefer': 'return=representation'\n        }\n    });\n}\n\nreturn [messages];",
         "outputs": 1,
@@ -1850,7 +1804,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 390,
+        "x": 450,
         "y": 160,
         "wires": [
             [
@@ -1862,7 +1816,7 @@
     {
         "id": "email_pir_alert",
         "type": "function",
-        "z": "e38e81b07fd63314",
+        "z": "1ab3a512540aedc7",
         "name": "PIR Alert Email",
         "func": "// Send email for PIR alert (burst)\nconst payload = msg.payload;\nif (!payload || !payload.event_type) return null;\n\n// Only process first message in burst to avoid spam\nif (payload.metadata && payload.metadata.burst_sequence !== 1) {\n    return null;\n}\n\nconst eventData = {\n    type: 'pir_alert',\n    image_url: payload.image_url,\n    timestamp: payload.created_at,\n    count: payload.metadata.total_burst\n};\n\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nmsg.eventData = eventData;\nreturn msg;",
         "outputs": 1,
@@ -1871,7 +1825,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 620,
+        "x": 680,
         "y": 220,
         "wires": [
             [
@@ -1882,12 +1836,12 @@
     {
         "id": "get_dnd_alert",
         "type": "http request",
-        "z": "e38e81b07fd63314",
+        "z": "1ab3a512540aedc7",
         "name": "Check DND",
         "method": "GET",
         "ret": "txt",
         "url": "",
-        "x": 850,
+        "x": 910,
         "y": 220,
         "wires": [
             [
@@ -1898,7 +1852,7 @@
     {
         "id": "send_alert_email",
         "type": "function",
-        "z": "e38e81b07fd63314",
+        "z": "1ab3a512540aedc7",
         "name": "Send Alert Email",
         "func": "let settings = JSON.parse(msg.payload);\nif (Array.isArray(settings)) settings = settings[0];\n\nif (settings.do_not_disturb === true) return null;\n\nconst recipients = await axios.get(\n    'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/email_recipients?is_active=eq.true&notification_types->>pir_alert=eq.true',\n    { headers: { 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8' } }\n);\n\nconst e = msg.eventData;\nconst messages = [];\n\nfor (const r of recipients.data) {\n    messages.push({\n        to: r.email,\n        topic: '⚠️ High Motion Alert',\n        payload: `<h2 style=\"color: #dc2626;\">⚠️ High Motion Alert - Burst Detected</h2><p>Multiple rapid movements detected (${e.count} images captured)</p><p><strong>Time:</strong> ${new Date(e.timestamp).toLocaleString('vi-VN')}</p>${e.image_url ? `<img src=\"${e.image_url}\" style=\"max-width: 600px; border-radius: 8px;\"/>` : ''}<p style=\"color: #6b7280; font-size: 12px;\">ESP32 Smart Doorbell</p>`,\n        from: 'ESP32 Doorbell <khoa199939@gmail.com>'\n    });\n}\n\nreturn [messages];",
         "outputs": 1,
@@ -1912,7 +1866,7 @@
                 "module": "axios"
             }
         ],
-        "x": 1050,
+        "x": 1110,
         "y": 220,
         "wires": [
             [
@@ -1923,7 +1877,7 @@
     {
         "id": "email_out_alert",
         "type": "e-mail",
-        "z": "e38e81b07fd63314",
+        "z": "1ab3a512540aedc7",
         "server": "smtp.gmail.com",
         "port": "587",
         "authtype": "BASIC",
@@ -1933,14 +1887,14 @@
         "tls": false,
         "name": "",
         "dname": "Send Alert Email",
-        "x": 1290,
+        "x": 1350,
         "y": 220,
         "wires": []
     },
     {
         "id": "insert_db_pir",
         "type": "http request",
-        "z": "e38e81b07fd63314",
+        "z": "1ab3a512540aedc7",
         "name": "Insert to Supabase",
         "method": "POST",
         "paytoqs": "ignore",
@@ -1952,7 +1906,7 @@
         "authType": "",
         "senderr": false,
         "headers": [],
-        "x": 600,
+        "x": 660,
         "y": 160,
         "wires": [
             [
@@ -1963,7 +1917,7 @@
     {
         "id": "debug_pir",
         "type": "debug",
-        "z": "e38e81b07fd63314",
+        "z": "1ab3a512540aedc7",
         "name": "💾 PIR DB Response",
         "active": true,
         "tosidebar": true,
@@ -1973,14 +1927,14 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 830,
+        "x": 890,
         "y": 160,
         "wires": []
     },
     {
         "id": "mqtt_pir_log",
         "type": "mqtt in",
-        "z": "e38e81b07fd63314",
+        "z": "1ab3a512540aedc7",
         "name": "PIR Motion Log",
         "topic": "doorbell/evt/pir",
         "qos": "1",
@@ -1989,8 +1943,8 @@
         "nl": false,
         "rap": false,
         "inputs": 0,
-        "x": 160,
-        "y": 380,
+        "x": 200,
+        "y": 440,
         "wires": [
             [
                 "prepare_motion_log"
@@ -2000,12 +1954,12 @@
     {
         "id": "prepare_motion_log",
         "type": "function",
-        "z": "e38e81b07fd63314",
+        "z": "1ab3a512540aedc7",
         "name": "Prepare Motion Log",
         "func": "const payload = msg.payload;\n\nif (!payload.event || !payload.timestamp) {\n    node.warn('Invalid payload');\n    return null;\n}\n\nmsg.payload = {\n    event_type: 'motion_detected',\n    image_url: null,\n    description: payload.description || 'PIR motion detected',\n    created_at: new Date(payload.timestamp * 1000).toISOString(),\n    metadata: {\n        source: 'pir_sensor',\n        raw_timestamp: payload.timestamp,\n        level: payload.level || 'normal',\n        device_id: payload.device_id,\n        message: 'Phát hiện chuyển động'\n    }\n};\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn msg;",
         "outputs": 1,
-        "x": 380,
-        "y": 380,
+        "x": 420,
+        "y": 440,
         "wires": [
             [
                 "insert_motion_log"
@@ -2015,12 +1969,12 @@
     {
         "id": "insert_motion_log",
         "type": "http request",
-        "z": "e38e81b07fd63314",
+        "z": "1ab3a512540aedc7",
         "name": "Insert Motion Log",
         "method": "POST",
         "url": "https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/events",
-        "x": 610,
-        "y": 380,
+        "x": 650,
+        "y": 440,
         "wires": [
             [
                 "debug_motion"
@@ -2030,7 +1984,7 @@
     {
         "id": "debug_motion",
         "type": "debug",
-        "z": "e38e81b07fd63314",
+        "z": "1ab3a512540aedc7",
         "name": "💾 Motion DB Response",
         "active": true,
         "tosidebar": true,
@@ -2040,21 +1994,21 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 830,
-        "y": 380,
+        "x": 930,
+        "y": 440,
         "wires": []
     },
     {
         "id": "batch_read_http_in",
         "type": "http in",
-        "z": "e38e81b07fd63314",
+        "z": "1ab3a512540aedc7",
         "name": "PUT /api/events/batch-read",
         "url": "/api/events/batch-read",
         "method": "put",
         "upload": false,
         "swaggerDoc": "",
-        "x": 190,
-        "y": 320,
+        "x": 230,
+        "y": 340,
         "wires": [
             [
                 "batch_read_validate"
@@ -2064,7 +2018,7 @@
     {
         "id": "batch_read_validate",
         "type": "function",
-        "z": "e38e81b07fd63314",
+        "z": "1ab3a512540aedc7",
         "name": "Validate & Prepare",
         "func": "const payload = msg.payload;\n\n// Validate event_ids array\nif (!payload.event_ids || !Array.isArray(payload.event_ids) || payload.event_ids.length === 0) {\n    msg.statusCode = 400;\n    msg.payload = {\n        success: false,\n        error: 'Missing or invalid event_ids array'\n    };\n    return [null, msg]; // Send to error output\n}\n\n// Build Supabase query with IN clause\nconst eventIds = payload.event_ids.join(',');\n\nmsg.url = `https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/events?id=in.(${eventIds})`;\nmsg.method = 'PATCH';\nmsg.payload = {\n    is_read: true\n};\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\n// Store original event_ids for response\nmsg.originalEventIds = payload.event_ids;\n\nreturn [msg, null]; // Send to success output",
         "outputs": 2,
@@ -2073,8 +2027,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 450,
-        "y": 320,
+        "x": 500,
+        "y": 340,
         "wires": [
             [
                 "batch_read_supabase"
@@ -2087,7 +2041,7 @@
     {
         "id": "batch_read_supabase",
         "type": "http request",
-        "z": "e38e81b07fd63314",
+        "z": "1ab3a512540aedc7",
         "name": "Update Supabase Events",
         "method": "use",
         "ret": "obj",
@@ -2100,8 +2054,8 @@
         "authType": "",
         "senderr": false,
         "headers": [],
-        "x": 720,
-        "y": 300,
+        "x": 770,
+        "y": 320,
         "wires": [
             [
                 "batch_read_format"
@@ -2111,7 +2065,7 @@
     {
         "id": "batch_read_format",
         "type": "function",
-        "z": "e38e81b07fd63314",
+        "z": "1ab3a512540aedc7",
         "name": "Format Success Response",
         "func": "const updatedRecords = msg.payload;\n\nmsg.payload = {\n    success: true,\n    message: `Marked ${msg.originalEventIds.length} events as read`,\n    updated_ids: msg.originalEventIds,\n    updated_count: Array.isArray(updatedRecords) ? updatedRecords.length : 0\n};\n\nmsg.statusCode = 200;\nreturn msg;",
         "outputs": 1,
@@ -2120,8 +2074,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 990,
-        "y": 300,
+        "x": 1040,
+        "y": 320,
         "wires": [
             [
                 "batch_read_response",
@@ -2132,18 +2086,18 @@
     {
         "id": "batch_read_response",
         "type": "http response",
-        "z": "e38e81b07fd63314",
+        "z": "1ab3a512540aedc7",
         "name": "HTTP Response",
         "statusCode": "",
         "headers": {},
-        "x": 1210,
-        "y": 320,
+        "x": 1270,
+        "y": 380,
         "wires": []
     },
     {
         "id": "batch_read_debug",
         "type": "debug",
-        "z": "e38e81b07fd63314",
+        "z": "1ab3a512540aedc7",
         "name": "✅ Batch Read Success",
         "active": true,
         "tosidebar": true,
@@ -2153,191 +2107,14 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 1240,
-        "y": 260,
-        "wires": []
-    },
-    {
-        "id": "mqtt_voice_in",
-        "type": "mqtt in",
-        "z": "0f2c315966152f10",
-        "name": "Voice Note Event",
-        "topic": "doorbell/evt/voice",
-        "qos": "1",
-        "datatype": "json",
-        "broker": "0506134bb93b271d",
-        "nl": false,
-        "rap": false,
-        "inputs": 0,
-        "x": 170,
-        "y": 160,
-        "wires": [
-            [
-                "prepare_voice_insert"
-            ]
-        ]
-    },
-    {
-        "id": "prepare_voice_insert",
-        "type": "function",
-        "z": "0f2c315966152f10",
-        "name": "Prepare Voice Insert",
-        "func": "const payload = msg.payload;\n\nif (!payload.audio_url || !payload.timestamp) {\n    node.warn('Invalid voice note payload');\n    return null;\n}\n\n// Convert duration_ms to duration_seconds (must be INTEGER for database)\nlet durationSeconds = 1; // Default to 1 second minimum\nif (payload.duration_seconds) {\n    durationSeconds = Math.ceil(payload.duration_seconds);\n} else if (payload.duration_ms) {\n    // Round up: 608ms -> 1s, 1200ms -> 2s\n    durationSeconds = Math.ceil(payload.duration_ms / 1000);\n}\n\nmsg.payload = {\n    audio_url: payload.audio_url,\n    duration_seconds: durationSeconds,\n    created_at: new Date(payload.timestamp * 1000).toISOString(),\n    metadata: {\n        source: 'doorbell_microphone',\n        device_id: payload.device_id || 'ESP32_DOORBELL',\n        description: 'Khách để lại lời nhắn',\n        raw_timestamp: payload.timestamp,\n        duration_ms: payload.duration_ms\n    }\n};\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nnode.warn('📝 Voice Note Insert: ' + JSON.stringify(msg.payload));\n\n// Store event data for email\nmsg.eventData = {\n    audio_url: msg.payload.audio_url,\n    duration_seconds: msg.payload.duration_seconds,\n    created_at: msg.payload.created_at\n};\n\nreturn msg;",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 400,
-        "y": 160,
-        "wires": [
-            [
-                "insert_voice_db"
-            ]
-        ]
-    },
-    {
-        "id": "insert_voice_db",
-        "type": "http request",
-        "z": "0f2c315966152f10",
-        "name": "Insert Voice to DB",
-        "method": "POST",
-        "ret": "txt",
-        "paytoqs": "ignore",
-        "url": "https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/voice_notes",
-        "tls": "",
-        "persist": false,
-        "proxy": "",
-        "insecureHTTPParser": false,
-        "authType": "",
-        "senderr": false,
-        "headers": [],
-        "x": 630,
-        "y": 160,
-        "wires": [
-            [
-                "log_voice_response",
-                "debug_voice"
-            ]
-        ]
-    },
-    {
-        "id": "log_voice_response",
-        "type": "function",
-        "z": "0f2c315966152f10",
-        "name": "Log Voice Response",
-        "func": "node.warn('🔍 Voice Insert Response:');\nnode.warn('Status Code: ' + msg.statusCode);\nnode.warn('Payload: ' + JSON.stringify(msg.payload));\nnode.warn('Headers: ' + JSON.stringify(msg.headers));\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 840,
-        "y": 120,
-        "wires": [
-            [
-                "email_voice_note"
-            ]
-        ]
-    },
-    {
-        "id": "email_voice_note",
-        "type": "function",
-        "z": "0f2c315966152f10",
-        "name": "Voice Email Flow",
-        "func": "// Only send email on success\nif (msg.statusCode !== 201 && msg.statusCode !== 200) {\n    return null;\n}\n\nconst voiceData = msg.eventData || {};\nconst eventData = {\n    type: 'voice',\n    audio_url: voiceData.audio_url,\n    duration: voiceData.duration_seconds,\n    timestamp: voiceData.created_at\n};\n\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nmsg.eventData = eventData;\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1070,
-        "y": 120,
-        "wires": [
-            [
-                "get_dnd_voice"
-            ]
-        ]
-    },
-    {
-        "id": "get_dnd_voice",
-        "type": "http request",
-        "z": "0f2c315966152f10",
-        "name": "Check DND",
-        "method": "GET",
-        "ret": "txt",
-        "url": "",
-        "x": 1270,
-        "y": 120,
-        "wires": [
-            [
-                "send_voice_email"
-            ]
-        ]
-    },
-    {
-        "id": "send_voice_email",
-        "type": "function",
-        "z": "0f2c315966152f10",
-        "name": "Send Voice Email",
-        "func": "let settings = JSON.parse(msg.payload);\nif (Array.isArray(settings)) settings = settings[0];\n\nif (settings.do_not_disturb === true) return null;\n\nconst recipients = await axios.get(\n    'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/email_recipients?is_active=eq.true&notification_types->>voice=eq.true',\n    { headers: { 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8' } }\n);\n\nconst e = msg.eventData;\nconst messages = [];\n\nfor (const r of recipients.data) {\n    messages.push({\n        to: r.email,\n        topic: '🎤 New Voice Message',\n        payload: `<h2 style=\"color: #7c3aed;\">🎤 New Voice Message Received</h2><p>Someone left a voice message at your doorbell.</p><p><strong>Time:</strong> ${new Date(e.timestamp).toLocaleString('vi-VN')}</p><p><strong>Duration:</strong> ${e.duration} seconds</p><p><a href=\"${e.audio_url}\" style=\"background: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px;\">🎧 Listen to Voice Message</a></p><p style=\"color: #6b7280; font-size: 12px; margin-top: 20px;\">ESP32 Smart Doorbell</p>`,\n        from: 'ESP32 Doorbell <khoa199939@gmail.com>'\n    });\n}\n\nreturn [messages];",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "libs": [
-            {
-                "var": "axios",
-                "module": "axios"
-            }
-        ],
-        "x": 1480,
-        "y": 120,
-        "wires": [
-            [
-                "email_out_voice"
-            ]
-        ]
-    },
-    {
-        "id": "email_out_voice",
-        "type": "e-mail",
-        "z": "0f2c315966152f10",
-        "server": "smtp.gmail.com",
-        "port": "587",
-        "authtype": "BASIC",
-        "saslformat": false,
-        "token": "oauth2Response.access_token",
-        "secure": false,
-        "tls": false,
-        "name": "",
-        "dname": "Send Voice Email",
-        "x": 1700,
-        "y": 120,
-        "wires": []
-    },
-    {
-        "id": "debug_voice",
-        "type": "debug",
-        "z": "0f2c315966152f10",
-        "name": "Voice DB Response",
-        "active": true,
-        "tosidebar": true,
-        "console": true,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 840,
-        "y": 160,
+        "x": 1300,
+        "y": 280,
         "wires": []
     },
     {
         "id": "mqtt_sensor_in",
         "type": "mqtt in",
-        "z": "a7b8c9d0e1f2g3h4",
+        "z": "b6ceb0b74b3f1936",
         "name": "Sensor Temperature",
         "topic": "doorbell/sensor/temp",
         "qos": "1",
@@ -2346,7 +2123,7 @@
         "nl": false,
         "rap": false,
         "inputs": 0,
-        "x": 170,
+        "x": 230,
         "y": 160,
         "wires": [
             [
@@ -2357,7 +2134,7 @@
     {
         "id": "prepare_sensor_insert",
         "type": "function",
-        "z": "a7b8c9d0e1f2g3h4",
+        "z": "b6ceb0b74b3f1936",
         "name": "Prepare Sensor Insert",
         "func": "const payload = msg.payload;\n\n// Handle both formats:\n// doorbell/sensor/temp: {value: 31.5, unit: \"C\", device_id: ..., timestamp: ...}\n// doorbell/telemetry: {temperature: 29.95, motion: false}\nconst temperature = payload.value || payload.temperature;\nconst timestamp = payload.timestamp || Math.floor(Date.now() / 1000);\n\nif (!temperature) {\n    node.warn('Invalid sensor payload: missing temperature/value');\n    return null;\n}\n\nmsg.payload = {\n    sensor_type: 'temperature',\n    temperature: temperature,\n    humidity: null,\n    created_at: new Date(timestamp * 1000).toISOString(),\n    metadata: {\n        device_id: payload.device_id || 'ESP32_DOORBELL',\n        raw_timestamp: timestamp,\n        unit: payload.unit || 'C'\n    }\n};\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn msg;",
         "outputs": 1,
@@ -2365,7 +2142,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 410,
+        "x": 470,
         "y": 160,
         "wires": [
             [
@@ -2376,7 +2153,7 @@
     {
         "id": "insert_sensor_db",
         "type": "http request",
-        "z": "a7b8c9d0e1f2g3h4",
+        "z": "b6ceb0b74b3f1936",
         "name": "Insert Sensor to DB",
         "method": "POST",
         "ret": "txt",
@@ -2389,7 +2166,7 @@
         "authType": "",
         "senderr": false,
         "headers": [],
-        "x": 650,
+        "x": 710,
         "y": 160,
         "wires": [
             [
@@ -2400,7 +2177,7 @@
     {
         "id": "debug_sensor",
         "type": "debug",
-        "z": "a7b8c9d0e1f2g3h4",
+        "z": "b6ceb0b74b3f1936",
         "name": "💾 Sensor DB Response",
         "active": true,
         "tosidebar": true,
@@ -2410,20 +2187,20 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 870,
+        "x": 930,
         "y": 160,
         "wires": []
     },
     {
         "id": "http_get_sensors",
         "type": "http in",
-        "z": "a7b8c9d0e1f2g3h4",
+        "z": "b6ceb0b74b3f1936",
         "name": "GET /api/sensors/latest",
         "url": "/api/sensors/latest",
         "method": "get",
         "upload": false,
         "swaggerDoc": "",
-        "x": 180,
+        "x": 240,
         "y": 320,
         "wires": [
             [
@@ -2434,7 +2211,7 @@
     {
         "id": "build_sensor_query",
         "type": "function",
-        "z": "a7b8c9d0e1f2g3h4",
+        "z": "b6ceb0b74b3f1936",
         "name": "Build Sensor Query",
         "func": "const sensorType = msg.req.query.type || 'temperature';\n\nlet url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/sensor_logs';\nurl += '?sensor_type=eq.' + sensorType;\nurl += '&order=created_at.desc&limit=1';\n\nmsg.url = url;\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\n\nreturn msg;",
         "outputs": 1,
@@ -2442,7 +2219,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 420,
+        "x": 480,
         "y": 320,
         "wires": [
             [
@@ -2453,7 +2230,7 @@
     {
         "id": "query_sensor_db",
         "type": "http request",
-        "z": "a7b8c9d0e1f2g3h4",
+        "z": "b6ceb0b74b3f1936",
         "name": "Query Sensor Data",
         "method": "GET",
         "ret": "txt",
@@ -2466,7 +2243,7 @@
         "authType": "",
         "senderr": false,
         "headers": [],
-        "x": 650,
+        "x": 710,
         "y": 320,
         "wires": [
             [
@@ -2477,7 +2254,7 @@
     {
         "id": "format_sensor_response",
         "type": "function",
-        "z": "a7b8c9d0e1f2g3h4",
+        "z": "b6ceb0b74b3f1936",
         "name": "Format Sensor Response",
         "func": "let data = msg.payload;\nif (typeof data === 'string') {\n    try {\n        data = JSON.parse(data);\n    } catch (e) {\n        data = [];\n    }\n}\n\nif (Array.isArray(data) && data.length > 0) {\n    msg.payload = {\n        success: true,\n        data: data[0],\n        timestamp: new Date().toISOString()\n    };\n} else {\n    msg.payload = {\n        success: false,\n        data: null,\n        message: 'No sensor data found'\n    };\n}\n\nmsg.statusCode = 200;\nreturn msg;",
         "outputs": 1,
@@ -2485,7 +2262,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 880,
+        "x": 940,
         "y": 320,
         "wires": [
             [
@@ -2496,12 +2273,275 @@
     {
         "id": "http_sensor_response",
         "type": "http response",
-        "z": "a7b8c9d0e1f2g3h4",
+        "z": "b6ceb0b74b3f1936",
         "name": "Sensor Response",
         "statusCode": "",
         "headers": {},
-        "x": 1100,
+        "x": 1160,
         "y": 320,
         "wires": []
+    },
+    {
+        "id": "get_email_recipients",
+        "type": "http in",
+        "z": "f78bcf5b56506dfb",
+        "name": "GET /api/email-recipients",
+        "url": "/api/email-recipients",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 190,
+        "y": 160,
+        "wires": [
+            [
+                "query_recipients"
+            ]
+        ]
+    },
+    {
+        "id": "query_recipients",
+        "type": "function",
+        "z": "f78bcf5b56506dfb",
+        "name": "Query Recipients",
+        "func": "msg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/email_recipients?order=created_at.desc';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "libs": [],
+        "x": 510,
+        "y": 160,
+        "wires": [
+            [
+                "http_get_recipients"
+            ]
+        ]
+    },
+    {
+        "id": "http_get_recipients",
+        "type": "http request",
+        "z": "f78bcf5b56506dfb",
+        "name": "GET Recipients",
+        "method": "GET",
+        "ret": "txt",
+        "url": "",
+        "x": 780,
+        "y": 100,
+        "wires": [
+            [
+                "format_recipients_response"
+            ]
+        ]
+    },
+    {
+        "id": "format_recipients_response",
+        "type": "function",
+        "z": "f78bcf5b56506dfb",
+        "name": "Format Response",
+        "func": "let data = JSON.parse(msg.payload);\nmsg.statusCode = 200;\nmsg.payload = { success: true, data: data };\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "libs": [],
+        "x": 1030,
+        "y": 100,
+        "wires": [
+            [
+                "recipients_http_response"
+            ]
+        ]
+    },
+    {
+        "id": "recipients_http_response",
+        "type": "http response",
+        "z": "f78bcf5b56506dfb",
+        "name": "Return Response",
+        "statusCode": "",
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        },
+        "x": 1630,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "post_email_recipient",
+        "type": "http in",
+        "z": "f78bcf5b56506dfb",
+        "name": "POST /api/email-recipients",
+        "url": "/api/email-recipients",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 190,
+        "y": 260,
+        "wires": [
+            [
+                "validate_recipient"
+            ]
+        ]
+    },
+    {
+        "id": "validate_recipient",
+        "type": "function",
+        "z": "f78bcf5b56506dfb",
+        "name": "Validate & Prepare",
+        "func": "const payload = msg.payload;\n\nif (!payload.email || !payload.email.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/)) {\n    msg.statusCode = 400;\n    msg.payload = { success: false, error: 'Invalid email address' };\n    return [null, msg];\n}\n\nconst newRecipient = {\n    email: payload.email,\n    name: payload.name || null,\n    is_active: payload.is_active !== false,\n    notification_types: payload.notification_types || { button: true, pir: true, pir_alert: true, voice: true }\n};\n\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/email_recipients';\nmsg.method = 'POST';\nmsg.payload = newRecipient;\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn [msg, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "libs": [],
+        "x": 510,
+        "y": 260,
+        "wires": [
+            [
+                "http_insert_recipient"
+            ],
+            [
+                "recipients_http_response"
+            ]
+        ]
+    },
+    {
+        "id": "http_insert_recipient",
+        "type": "http request",
+        "z": "f78bcf5b56506dfb",
+        "name": "Insert Recipient",
+        "method": "POST",
+        "ret": "txt",
+        "url": "",
+        "x": 800,
+        "y": 200,
+        "wires": [
+            [
+                "format_insert_response"
+            ]
+        ]
+    },
+    {
+        "id": "format_insert_response",
+        "type": "function",
+        "z": "f78bcf5b56506dfb",
+        "name": "Format Insert Response",
+        "func": "let data = JSON.parse(msg.payload);\nmsg.statusCode = 201;\nmsg.payload = { success: true, data: Array.isArray(data) ? data[0] : data };\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "libs": [],
+        "x": 1050,
+        "y": 200,
+        "wires": [
+            [
+                "recipients_http_response"
+            ]
+        ]
+    },
+    {
+        "id": "delete_email_recipient",
+        "type": "http in",
+        "z": "f78bcf5b56506dfb",
+        "name": "DELETE /api/email-recipients/:id",
+        "url": "/api/email-recipients/:id",
+        "method": "delete",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 210,
+        "y": 560,
+        "wires": [
+            [
+                "prepare_delete"
+            ]
+        ]
+    },
+    {
+        "id": "prepare_delete",
+        "type": "function",
+        "z": "f78bcf5b56506dfb",
+        "name": "Prepare Delete",
+        "func": "const id = msg.req.params.id;\n\nif (!id) {\n    msg.statusCode = 400;\n    msg.payload = { success: false, error: 'Missing recipient ID' };\n    return [null, msg];\n}\n\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/email_recipients?id=eq.' + id;\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\n\nreturn [msg, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "libs": [],
+        "x": 500,
+        "y": 560,
+        "wires": [
+            [
+                "http_delete_recipient"
+            ],
+            [
+                "recipients_http_response"
+            ]
+        ]
+    },
+    {
+        "id": "http_delete_recipient",
+        "type": "http request",
+        "z": "f78bcf5b56506dfb",
+        "name": "Delete Recipient",
+        "method": "DELETE",
+        "ret": "txt",
+        "url": "",
+        "x": 740,
+        "y": 500,
+        "wires": [
+            [
+                "format_delete_response"
+            ]
+        ]
+    },
+    {
+        "id": "format_delete_response",
+        "type": "function",
+        "z": "f78bcf5b56506dfb",
+        "name": "Format Delete Response",
+        "func": "msg.statusCode = 200;\nmsg.payload = { success: true, message: 'Recipient deleted' };\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "libs": [],
+        "x": 970,
+        "y": 440,
+        "wires": [
+            [
+                "recipients_http_response"
+            ]
+        ]
+    },
+    {
+        "id": "options_email_recipients",
+        "type": "http in",
+        "z": "f78bcf5b56506dfb",
+        "name": "OPTIONS /api/email-recipients",
+        "url": "/api/email-recipients",
+        "method": "options",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 210,
+        "y": 400,
+        "wires": [
+            [
+                "cors_recipients"
+            ]
+        ]
+    },
+    {
+        "id": "cors_recipients",
+        "type": "function",
+        "z": "f78bcf5b56506dfb",
+        "name": "CORS Headers",
+        "func": "msg.statusCode = 204;\nmsg.payload = '';\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "libs": [],
+        "x": 500,
+        "y": 400,
+        "wires": [
+            [
+                "recipients_http_response"
+            ]
+        ]
     }
 ]
