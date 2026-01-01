@@ -116,7 +116,7 @@
         "type": "function",
         "z": "bd6bb11c58fb203e",
         "name": "Prepare Insert",
-        "func": "const payload = msg.payload;\n\nif (!payload.image_url || !payload.timestamp) {\n    node.warn('Invalid payload');\n    return null;\n}\n\nmsg.payload = {\n    event_type: 'button_press',\n    image_url: payload.image_url,\n    created_at: new Date(payload.timestamp * 1000).toISOString(),\n    metadata: {\n        source: 'doorbell_button',\n        raw_timestamp: payload.timestamp\n    }\n};\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn msg;",
+        "func": "const payload = msg.payload;\n\n// DEBUG: Log every button event\nnode.warn('🔔 [BUTTON] Received event: ' + JSON.stringify(payload));\n\nif (!payload.image_url || !payload.timestamp) {\n    node.warn('❌ [BUTTON] Invalid payload - missing image_url or timestamp');\n    return null;\n}\n\nmsg.payload = {\n    event_type: 'button_press',\n    image_url: payload.image_url,\n    created_at: new Date(payload.timestamp * 1000).toISOString(),\n    metadata: {\n        source: 'doorbell_button',\n        raw_timestamp: payload.timestamp\n    }\n};\n\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n};\n\nreturn msg;",
         "outputs": 1,
         "x": 390,
         "y": 160,
@@ -2008,92 +2008,9 @@
         "y": 380,
         "wires": [
             [
-                "insert_motion_log",
-                "email_pir_motion"
+                "insert_motion_log"
             ]
         ]
-    },
-    {
-        "id": "email_pir_motion",
-        "type": "function",
-        "z": "e38e81b07fd63314",
-        "name": "PIR Email Flow",
-        "func": "// Check DND, get recipients, send emails for PIR motion\nconst eventData = {\n    type: 'pir',\n    description: msg.payload.description || 'Motion detected',\n    timestamp: msg.payload.created_at,\n    level: msg.payload.metadata.level\n};\n\nflow.set('pir_event_' + Date.now(), eventData);\n\n// Get settings\nmsg.url = 'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/device_settings?id=eq.1';\nmsg.headers = {\n    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8',\n    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n};\nmsg.eventData = eventData;\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 620,
-        "y": 440,
-        "wires": [
-            [
-                "get_dnd_pir"
-            ]
-        ]
-    },
-    {
-        "id": "get_dnd_pir",
-        "type": "http request",
-        "z": "e38e81b07fd63314",
-        "name": "Check DND",
-        "method": "GET",
-        "ret": "txt",
-        "paytoqs": "ignore",
-        "url": "",
-        "tls": "",
-        "persist": false,
-        "proxy": "",
-        "x": 850,
-        "y": 440,
-        "wires": [
-            [
-                "filter_send_pir"
-            ]
-        ]
-    },
-    {
-        "id": "filter_send_pir",
-        "type": "function",
-        "z": "e38e81b07fd63314",
-        "name": "Filter & Send PIR",
-        "func": "let settings = JSON.parse(msg.payload);\nif (Array.isArray(settings)) settings = settings[0];\n\nif (settings.do_not_disturb === true) {\n    return null;\n}\n\n// Get recipients\nconst recipients = await axios.get(\n    'https://xznnnklhqkccylxxzsdh.supabase.co/rest/v1/email_recipients?is_active=eq.true&notification_types->>pir=eq.true',\n    {\n        headers: {\n            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bm5ua2xocWtjY3lseHh6c2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5OTEzMDAsImV4cCI6MjA4MjU2NzMwMH0.qucNiuvWiQc-ntPAuBiNKZAphhnReb3e4gnUAhEE1Z8'\n        }\n    }\n);\n\nconst eventData = msg.eventData;\nconst messages = [];\n\nfor (const r of recipients.data) {\n    messages.push({\n        to: r.email,\n        topic: '👤 Motion Detected',\n        payload: `<h2>👤 Motion Detected</h2><p>${eventData.description}</p><p><strong>Time:</strong> ${new Date(eventData.timestamp).toLocaleString('vi-VN')}</p><p style=\"color: #6b7280; font-size: 12px;\">ESP32 Smart Doorbell</p>`,\n        from: 'ESP32 Doorbell <khoa199939@gmail.com>'\n    });\n}\n\nreturn [messages];",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [
-            {
-                "var": "axios",
-                "module": "axios"
-            }
-        ],
-        "x": 1070,
-        "y": 440,
-        "wires": [
-            [
-                "email_out_pir"
-            ]
-        ]
-    },
-    {
-        "id": "email_out_pir",
-        "type": "e-mail",
-        "z": "e38e81b07fd63314",
-        "server": "smtp.gmail.com",
-        "port": "587",
-        "authtype": "BASIC",
-        "saslformat": false,
-        "token": "oauth2Response.access_token",
-        "secure": false,
-        "tls": false,
-        "name": "",
-        "dname": "Send PIR Email",
-        "x": 1300,
-        "y": 440,
-        "wires": []
     },
     {
         "id": "insert_motion_log",
